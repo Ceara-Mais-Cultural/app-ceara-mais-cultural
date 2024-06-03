@@ -1,0 +1,16 @@
+export default {
+  text: '#2E2E2E',
+  background_light: '#DEBF9D',
+  background_dark: '#332510',
+  off_white: '#F0F0F0',
+  white: '#FFFFFF',
+  primary: '#C97B00',
+  menu_primary: '#258F44',
+  menu_secundary: '#1D72BA',
+  stroke: '#E0E0E0',
+  placeholder: '#828282',
+  pending: '#FAFE48',
+  danger: '#FF2424',
+  confirm: '#54E85E',
+  peding: '#FAFE48',
+};

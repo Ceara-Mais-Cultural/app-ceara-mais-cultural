@@ -1,12 +1,15 @@
 {
   "expo": {
-    "name": "ceara-mais-cultural",
+    "name": "Ceará Mais Cultural",
     "slug": "ceara-mais-cultural",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "ceara-mais-cultural",
     "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
@@ -27,7 +30,8 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
