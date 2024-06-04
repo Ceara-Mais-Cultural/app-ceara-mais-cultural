@@ -1,7 +1,6 @@
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Pressable, RefreshControl } from 'react-native';
 import React, { useCallback, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Pressable, RefreshControl, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, icons } from '@/constants';
 import { StatusBar } from 'expo-status-bar';
 import FormField from '@/components/FormField';
 import CustomButton from '@/components/CustomButton';
@@ -10,10 +9,26 @@ import AuthService from '../services/authService';
 import getDataService from '../services/getDataService';
 import CustomText from '@/components/CustomText';
 import { useFocusEffect } from '@react-navigation/native';
+import FormSelectField from '@/components/FormSelectField';
+import GetDataService from '../services/getDataService';
+import { colors, icons } from '@/constants';
 
 const Ideas = () => {
+  const initialFilter = {
+    titulo: '',
+    categoria: '',
+    municipio: '',
+    bairro: '',
+    comunidade: '',
+  };
+  const [filter, setFilter] = useState<any>(initialFilter);
+  const [categorias, setCategorias] = useState([]);
+  const [municipios, setMunicipios] = useState([]);
+  const [bairros, setBairros] = useState([]);
   const [ideas, setIdeas] = useState([]);
+  const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(true);
+  const [initialIdeas, setInitialIdeas] = useState([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -21,7 +36,10 @@ const Ideas = () => {
     }, [])
   );
 
+  const filteredIdeas = ideas.filter((idea: any) => idea.title.toLowerCase().includes(searchText.toLowerCase()));
+
   const loadScreen = () => {
+    setFilter(initialFilter);
     AuthService.getUserData().then((userData: any) => {
       const user = JSON.parse(userData);
       const role = AuthService.getPermissionLevel(user);
@@ -45,6 +63,7 @@ const Ideas = () => {
       res.data.forEach((idea: any) => {
         idea.created_at = new Date(idea.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
       });
+      setInitialIdeas(res.data);
       setIdeas(res.data);
       setLoading(false);
     });
@@ -83,8 +102,95 @@ const Ideas = () => {
     }
   };
 
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const openFilter = () => {
+    getMunicipios();
+    getCategories();
+    setIsModalVisible(true);
+  };
+
+  const closeFilter = (action: boolean) => {
+    let filteredData: any = [...initialIdeas];
+    if (action) {
+      if (filter.titulo) {
+        filteredData = filteredData.filter((idea: any) => idea.title.toLowerCase().includes(filter.titulo.toLowerCase()));
+      }
+      if (filter.categoria) {
+        filteredData = filteredData.filter((idea: any) => idea.category === filter.categoria);
+      }
+      if (filter.municipio) {
+        filteredData = filteredData.filter((idea: any) => idea.city === filter.municipio);
+      }
+      if (filter.bairro) {
+        filteredData = filteredData.filter((idea: any) => idea.neighborhood === filter.bairro);
+      }
+      if (filter.comunidade) {
+        filteredData = filteredData.filter((idea: any) => idea.community.toLowerCase().includes(filter.comunidade.toLowerCase()));
+      }
+      if (filteredData.every((value: any, index: any) => value === initialIdeas[index])) {
+        setIdeas(initialIdeas);
+      } else {
+        setIdeas(filteredData);
+      }
+    } else {
+      setFilter(initialFilter);
+      setIdeas(initialIdeas);
+    }
+    setIsModalVisible(false);
+  };
+
+  const getCategories = () => {
+    GetDataService.getCategories().then((res) => {
+      setCategorias(res.data);
+    });
+  };
+
+  const getMunicipios = () => {
+    GetDataService.getCities().then((res) => {
+      setMunicipios(res.data);
+    });
+  };
+
+  const getMunicipioBairros = (idMunicipio: any) => {
+    GetDataService.getNeighborhoods(idMunicipio).then((res) => {
+      setBairros(res.data);
+    });
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, paddingBottom: 80 }}>
+      {/* MODAL */}
+      <Modal animationType='fade' transparent={true} visible={isModalVisible} onRequestClose={() => closeFilter(false)}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <CustomText style={styles.modalTitle}>Filtros</CustomText>
+            <FormField title='Título' width='80%' value={filter.titulo} handleChangeText={(e: any) => setFilter({ ...filter, titulo: e })} />
+            <FormSelectField title='Categoria' selected={filter.categoria} array={categorias} label='name' value='id' placeholder='Selecione' handleSelectChange={(e: any) => setFilter({ ...filter, categoria: e })} />
+            <FormSelectField
+              title='Município'
+              selected={filter.municipio}
+              array={municipios}
+              label='name'
+              value='id'
+              placeholder='Selecione'
+              handleSelectChange={(e: any) => {
+                setFilter({ ...filter, municipio: e });
+                getMunicipioBairros(e);
+              }}
+            />
+            <FormSelectField title='Bairro' selected={filter.bairro} array={bairros} label='name' value='id' placeholder='Selecione' handleSelectChange={(e: any) => setFilter({ ...filter, bairro: e })} />
+            <FormField title='Comunidade' width='80%' value={filter.comunidade} handleChangeText={(e: any) => setFilter({ ...filter, comunidade: e })} />
+
+            <View style={styles.filterButtons}>
+              <CustomButton title='Limpar' type='Secondary' width={135} height={50} handlePress={() => closeFilter(false)} />
+              <CustomButton title='Aplicar' type='Primary' width={135} height={50} handlePress={() => closeFilter(true)} />
+            </View>
+          </View>
+        </View>
+      </Modal>
+      {/* END MODAL */}
+
       <ScrollView style={styles.background} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
         <View style={styles.header}>
           <View style={styles.titleArea}>
@@ -95,17 +201,17 @@ const Ideas = () => {
             <CustomText>{'          '}</CustomText>
           </View>
           <View style={styles.searchArea}>
-            <FormField placeholder='Pesquise' title='' width='65%' />
-            <CustomButton title='Filtros' type='Primary' width={120} height={50} />
+            <FormField placeholder='Pesquise' title='' width='65%' value={searchText} handleChangeText={setSearchText} />
+            <CustomButton title={Object.values(filter).some((value) => value !== '' && value !== null) ? 'Filtros *' : 'Filtros'} type='Primary' width={120} height={50} handlePress={() => openFilter()} />
           </View>
         </View>
         <View style={styles.content}>
           <View style={styles.contentTitleArea}>
             <CustomText style={styles.contentTitle}>Minhas Ideias</CustomText>
           </View>
-          {(!loading && ideas.length > 0 && (
+          {(!loading && filteredIdeas.length > 0 && (
             <View style={styles.cardsArea}>
-              {ideas.map((idea: any) => (
+              {filteredIdeas.map((idea: any) => (
                 <_IdeaCard key={idea.id} idea={idea} onPress={() => handleViewCardNav(idea)} />
               ))}
             </View>
@@ -207,6 +313,33 @@ const styles = StyleSheet.create({
     maxWidth: 210,
     width: '100%',
     marginRight: 15,
+  },
+
+  // MODAL
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 25,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 26,
+    fontFamily: 'PoppinsBold',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  filterButtons: {
+    marginTop: 25,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
 });
 

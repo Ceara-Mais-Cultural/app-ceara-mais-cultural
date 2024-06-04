@@ -3,7 +3,7 @@ import React from 'react';
 import { colors } from '@/constants';
 import CustomText from './CustomText';
 
-const CustomButton = ({ title, handlePress, isLoading, type, disabled, height=60, width=250 }: any) => {
+const CustomButton = ({ title, handlePress, isLoading, type, disabled, height=50, width=250 }: any) => {
   return (
     <TouchableOpacity onPress={handlePress} disabled={disabled} style={[disabled ? styles.disabled : styles.commonBackground, { height, width }, type === 'Primary' ? styles.backgroundPrimary : type === 'Secondary' ? styles.backgroundSecondary : styles.backgroundLink]}>
       {(isLoading && <ActivityIndicator />) || (!isLoading && <CustomText style={[styles.commonTitle, type === 'Primary' ? styles.titlePrimary : type === 'Secondary' ? styles.titleSecondary : styles.titleLink]}>{title}</CustomText>)}

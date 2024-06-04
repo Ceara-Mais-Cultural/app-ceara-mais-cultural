@@ -48,7 +48,7 @@ const SignIn = () => {
         } else {
           Alert.alert('Erro', 'Ocorreu um erro ao fazer login.');
         }
-        console.error('Erro ao criar conta.', error);
+        console.error('Erro ao fazer login.', error);
       })
       .finally(() => {
         setIsLoading(false);

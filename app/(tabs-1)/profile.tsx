@@ -5,6 +5,7 @@ import FormField from '@/components/FormField';
 import { colors } from '@/constants';
 import CustomText from '@/components/CustomText';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import AuthService from '../services/authService';
 
 const Profile = () => {
   const [user, setUser] = useState({
@@ -14,11 +15,14 @@ const Profile = () => {
     city_name: '',
     neighborhood_name: '',
     community: '',
+    role: '',
   });
 
   useEffect(() => {
     AsyncStorage.getItem('userData').then((userData: any) => {
-      setUser(JSON.parse(userData));
+      const user = JSON.parse(userData)
+      user.role = AuthService.getPermissionLevel(user);
+      setUser(user);
     });
   }, []);
 
@@ -34,6 +38,7 @@ const Profile = () => {
           <FormField title='Município' disabled='true' value={user.city_name} handleChangeText={(e: any) => setUser({ ...user, city_name: e })} />
           <FormField title='Bairro' disabled='true' value={user.neighborhood_name} handleChangeText={(e: any) => setUser({ ...user, neighborhood_name: e })} />
           <FormField title='Comunidade' disabled='true' value={user.community} handleChangeText={(e: any) => setUser({ ...user, community: e })} />
+          <FormField title='Papel' disabled='true' value={user.role} handleChangeText={(e: any) => setUser({ ...user, role: e })} />
         </View>
       </ScrollView>
     </SafeAreaView>
