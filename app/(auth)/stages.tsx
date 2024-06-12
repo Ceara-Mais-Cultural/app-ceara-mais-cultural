@@ -115,6 +115,7 @@ const styles = StyleSheet.create({
 
   cardText: {
     fontSize: 16,
+    top: 3,
   },
 
   chevron: {

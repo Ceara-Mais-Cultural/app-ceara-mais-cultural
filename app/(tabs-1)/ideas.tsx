@@ -12,6 +12,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import FormSelectField from '@/components/FormSelectField';
 import GetDataService from '../services/getDataService';
 import { colors, icons } from '@/constants';
+import AccordionItem from '@/components/AccordionItem';
 
 const Ideas = () => {
   const initialFilter = {
@@ -29,6 +30,8 @@ const Ideas = () => {
   const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(true);
   const [initialIdeas, setInitialIdeas] = useState([]);
+  const [user, setUser] = useState<any>(null);
+  const [role, setRole] = useState('Agente Cultural');
 
   useFocusEffect(
     useCallback(() => {
@@ -40,9 +43,13 @@ const Ideas = () => {
 
   const loadScreen = () => {
     setFilter(initialFilter);
+    getMunicipios();
     AuthService.getUserData().then((userData: any) => {
       const user = JSON.parse(userData);
+      setUser(user);
       const role = AuthService.getPermissionLevel(user);
+      setRole(role);
+      getMunicipioBairros(user.city);
       if (role === 'Agente Cultural') getIdeas(user.id);
       else if (role === 'Mobilizador') getIdeas(user.id, user.city);
       else getIdeas();
@@ -95,16 +102,14 @@ const Ideas = () => {
   };
 
   const handleViewCardNav = (idea: any) => {
-    if (idea.status === 'waiting') {
-      router.push({ pathname: '/send-document', params: { ideaId: idea.id } });
-    } else {
-      router.push({ pathname: '/view-idea', params: { idea: JSON.stringify(idea) } });
-    }
+    if (role === 'Comissão' || idea.status !== 'waiting') router.push({ pathname: '/view-idea', params: { idea: JSON.stringify(idea) } });
+    else router.push({ pathname: '/send-document', params: { idea: JSON.stringify(idea) } });
   };
 
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const openFilter = () => {
+    setFilter({ ...filter, municipio: user.city, bairro: user.neighborhood, comunidade: user.comunity });
     getMunicipios();
     getCategories();
     setIsModalVisible(true);
@@ -128,7 +133,8 @@ const Ideas = () => {
       if (filter.comunidade) {
         filteredData = filteredData.filter((idea: any) => idea.community.toLowerCase().includes(filter.comunidade.toLowerCase()));
       }
-      if (filteredData.every((value: any, index: any) => value === initialIdeas[index])) {
+      if (filteredData.length === 0) setIdeas(filteredData);
+      else if (filteredData.every((value: any, index: any) => value === initialIdeas[index])) {
         setIdeas(initialIdeas);
       } else {
         setIdeas(filteredData);
@@ -173,13 +179,14 @@ const Ideas = () => {
               array={municipios}
               label='name'
               value='id'
+              disabled={role !== 'Comissão'}
               placeholder='Selecione'
               handleSelectChange={(e: any) => {
                 setFilter({ ...filter, municipio: e });
                 getMunicipioBairros(e);
               }}
             />
-            <FormSelectField title='Bairro' selected={filter.bairro} array={bairros} label='name' value='id' placeholder='Selecione' handleSelectChange={(e: any) => setFilter({ ...filter, bairro: e })} />
+            <FormSelectField title='Bairro' selected={filter.bairro} array={bairros} label='name' value='id' disabled={role !== 'Comissão'} placeholder='Selecione' handleSelectChange={(e: any) => setFilter({ ...filter, bairro: e })} />
             <FormField title='Comunidade' width='80%' value={filter.comunidade} handleChangeText={(e: any) => setFilter({ ...filter, comunidade: e })} />
 
             <View style={styles.filterButtons}>
@@ -205,18 +212,88 @@ const Ideas = () => {
             <CustomButton title={Object.values(filter).some((value) => value !== '' && value !== null) ? 'Filtros *' : 'Filtros'} type='Primary' width={120} height={50} handlePress={() => openFilter()} />
           </View>
         </View>
-        <View style={styles.content}>
-          <View style={styles.contentTitleArea}>
-            <CustomText style={styles.contentTitle}>Minhas Ideias</CustomText>
+
+        {role === 'Agente Cultural' && (
+          <View style={styles.content}>
+            <AccordionItem title='Minhas Ideias' isExpanded={!loading}>
+              {(!loading && filteredIdeas.length > 0 && (
+                <View style={styles.cardsArea}>
+                  {filteredIdeas.map((idea: any) => (
+                    <_IdeaCard key={idea.id} idea={idea} onPress={() => handleViewCardNav(idea)} />
+                  ))}
+                </View>
+              )) || <Text style={{ marginHorizontal: 'auto' }}>Nenhum item encontrado!</Text>}
+            </AccordionItem>
           </View>
-          {(!loading && filteredIdeas.length > 0 && (
-            <View style={styles.cardsArea}>
-              {filteredIdeas.map((idea: any) => (
-                <_IdeaCard key={idea.id} idea={idea} onPress={() => handleViewCardNav(idea)} />
-              ))}
+        )}
+
+        {role === 'Mobilizador' && (
+          <>
+            <View style={styles.content}>
+              <AccordionItem title={'Ideias Promovidas em ' + user.city_name} isExpanded={!loading}>
+                {(!loading && filteredIdeas.length > 0 && (
+                  <View style={styles.cardsArea}>
+                    {filteredIdeas.map((idea: any) => {
+                      if (idea.status !== 'approved') {
+                        return <_IdeaCard key={idea.id} idea={idea} onPress={() => handleViewCardNav(idea)} />;
+                      }
+                    })}
+                  </View>
+                )) || <Text style={{ marginHorizontal: 'auto' }}>Nenhum item encontrado!</Text>}
+              </AccordionItem>
             </View>
-          )) || <Text style={{ marginHorizontal: 'auto' }}>Nenhuma ideia cadastrada!</Text>}
-        </View>
+
+            <View style={styles.content}>
+              <AccordionItem title={'Ideias Aprovadas de ' + user.city_name}>
+                {(!loading && filteredIdeas.length > 0 && (
+                  <View style={styles.cardsArea}>
+                    {filteredIdeas.map((idea: any) => {
+                      if (idea.status === 'approved') {
+                        return <_IdeaCard key={idea.id} idea={idea} onPress={() => handleViewCardNav(idea)} />;
+                      }
+                    })}
+                  </View>
+                )) || <Text style={{ marginHorizontal: 'auto' }}>Nenhuma ideia aprovada!</Text>}
+              </AccordionItem>
+            </View>
+          </>
+        )}
+
+        {role === 'Comissão' &&
+          municipios.map((city: any) => (
+            <View key={city.id} style={styles.content}>
+              <CustomText style={styles.cardTitle}>{city.name}</CustomText>
+              <View style={styles.subCard}>
+                <AccordionItem title='Ideias Submetidas'>
+                  {(!loading && filteredIdeas.length > 0 && (
+                    <View style={styles.cardsArea}>
+                      {filteredIdeas.map((idea: any) => {
+                        if (idea.status !== 'approved' && idea.city_name === city.name) {
+                          return <_IdeaCard key={idea.id} idea={idea} onPress={() => handleViewCardNav(idea)} />;
+                        }
+                      })}
+                    </View>
+                  )) || <Text style={{ marginHorizontal: 'auto' }}>Nenhum item encontrado!</Text>}
+                </AccordionItem>
+              </View>
+
+              <View style={[{ borderWidth: 0.5, borderColor: colors.text, marginTop: 10, marginBottom: 10 }]}></View>
+
+              <View style={styles.subCard}>
+                <AccordionItem title={'Ideias Aprovadas'}>
+                  {(!loading && filteredIdeas.length > 0 && (
+                    <View style={styles.cardsArea}>
+                      {filteredIdeas.map((idea: any) => {
+                        if (idea.status === 'approved' && idea.city_name === city.name) {
+                          return <_IdeaCard key={idea.id} idea={idea} onPress={() => handleViewCardNav(idea)} />;
+                        }
+                      })}
+                    </View>
+                  )) || <Text style={{ marginHorizontal: 'auto' }}>Nenhuma ideia aprovada!</Text>}
+                </AccordionItem>
+              </View>
+            </View>
+          ))}
       </ScrollView>
 
       <StatusBar backgroundColor={colors.background_dark} />
@@ -238,6 +315,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 15,
     gap: 10,
+    marginBottom: 15,
   },
 
   titleArea: {
@@ -268,23 +346,21 @@ const styles = StyleSheet.create({
   },
 
   content: {
-    margin: 15,
+    marginBottom: 15,
+    marginHorizontal: 15,
     padding: 20,
     backgroundColor: colors.off_white,
     borderRadius: 20,
   },
 
-  contentTitleArea: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  cardTitle: {
+    fontFamily: 'PoppinsBold',
+    fontSize: 17,
+    width: '100%',
+    maxWidth: 290,
   },
 
-  contentTitle: {
-    fontFamily: 'PoppinsBold',
-    fontSize: 20,
-    marginBottom: 20,
-  },
+  subCard: {},
 
   cardsArea: {
     gap: 10,

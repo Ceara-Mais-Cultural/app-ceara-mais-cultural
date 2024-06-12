@@ -1,4 +1,4 @@
-import { ScrollView, View, Image, Text, StyleSheet } from 'react-native';
+import { ScrollView, View, Image, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, images } from '../constants';
 import { useEffect, useState } from 'react';
@@ -30,7 +30,11 @@ export default function Index() {
   }, []);
 
   if (!fontLoaded) {
-    return <Text>Carregando fontes...</Text>;
+    return (
+      <View style={{ marginHorizontal: 'auto', marginTop: 200 }}>
+        <ActivityIndicator />
+      </View>
+    );
   }
 
   return (
@@ -47,28 +51,36 @@ export default function Index() {
 
             <View style={styles.promoterRow}>
               <View style={styles.promoter}>
-                <Image source={images.logo} style={styles.promoterIcon} resizeMode='contain' />
-                <CustomText style={styles.promoterText}>Fulano</CustomText>
-              </View>
-              <View style={styles.promoter}>
-                <Image source={images.logo} style={styles.promoterIcon} resizeMode='contain' />
-                <CustomText style={styles.promoterText}>Ciclano</CustomText>
+                <Image source={images.aspra} style={styles.promoterIcon} resizeMode='contain' />
+                <CustomText style={styles.promoterText}>ASPRA</CustomText>
               </View>
             </View>
 
             <View style={styles.promoterRow}>
               <View style={styles.promoter}>
-                <Image source={images.logo} style={styles.promoterIcon} resizeMode='contain' />
-                <CustomText style={styles.promoterText}>Deltrano</CustomText>
+                <Image source={images.impactHub} style={[styles.promoterIcon, {width: 140,}]} resizeMode='contain' />
+                <CustomText style={styles.promoterText}>IMPACT HUB</CustomText>
+              </View>
+
+              <View style={styles.promoter}>
+                <Image source={images.mjsp} style={styles.promoterIcon} resizeMode='contain' />
+                <CustomText style={styles.promoterText}>MJSP</CustomText>
+              </View>
+            </View>
+
+            <View style={styles.promoterRow}>
+              <View style={styles.promoter}>
+                <Image source={images.pronasci} style={[styles.promoterIcon, {width: 120,}]} resizeMode='contain' />
+                <CustomText style={styles.promoterText}>PRONASCI</CustomText>
               </View>
               <View style={styles.promoter}>
-                <Image source={images.logo} style={styles.promoterIcon} resizeMode='contain' />
-                <CustomText style={styles.promoterText}>Ministério da Fazenda</CustomText>
+                <Image source={images.ufc} style={[styles.promoterIcon, {width: 120,}]} resizeMode='contain' />
+                <CustomText style={styles.promoterText}>UFC</CustomText>
               </View>
             </View>
           </View>
 
-          <CustomText style={styles.calling}>Seja parte da revolução cultural do Ceará!</CustomText>
+          <CustomText style={{marginVertical: 10}}>Seja parte da revolução cultural do Ceará!</CustomText>
           <CustomButton title='Participar' type='Primary' height={60} width={250} handlePress={() => router.push('/sign-in')} />
         </Container>
       </ScrollView>
@@ -87,18 +99,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 25,
     display: 'flex',
     alignItems: 'center',
+    rowGap: 10,
+    paddingBottom: 20,
   },
 
   logo: {
     height: 160,
     width: 160,
+    marginVertical: -15,
   },
 
   sloganText: {
     fontSize: 25,
     textAlign: 'center',
-    marginBottom: 25,
-    marginTop: 20,
     width: 250,
   },
 
@@ -109,8 +122,7 @@ const styles = StyleSheet.create({
   },
 
   listText: {
-    color: colors.text,
-    marginBottom: 15,
+    marginBottom: 10,
   },
 
   listPromoters: {
@@ -124,7 +136,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     width: '100%',
     justifyContent: 'space-between',
-    gap: 5,
   },
 
   promoter: {
@@ -133,24 +144,20 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     gap: 3,
+    borderWidth: 1.5,
+    borderColor: colors.stroke,
     backgroundColor: colors.off_white,
     borderRadius: 15,
   },
 
   promoterIcon: {
+    marginTop: 10,
     width: 90,
-    height: 90,
+    height: 80,
   },
 
   promoterText: {
     textAlign: 'center',
-    maxWidth: 140,
-    color: colors.text,
-  },
-
-  calling: {
-    marginTop: 20,
-    marginBottom: 20,
-    color: colors.text,
+    maxWidth: 150,
   },
 });

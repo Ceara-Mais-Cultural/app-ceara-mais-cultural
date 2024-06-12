@@ -14,7 +14,11 @@ const DynamicTable = ({ data, header }: any) => {
   const columnWidth = 150;
 
   if (!data || data.length === 0) {
-    return <Text>Nenhum dado disponível</Text>;
+    return <View style={{
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    }}><Text>Nenhum dado disponível</Text></View>;
   }
 
   return (
@@ -31,7 +35,7 @@ const DynamicTable = ({ data, header }: any) => {
           <View key={rowIndex} style={[styles.row, { width: columns.length * columnWidth }]}>
             {columns.map((column: any, colIndex: any) => (
               <Text key={colIndex} style={[styles.cell, { width: columnWidth }]}>
-                {item[column]}
+                {column !== 'description' ? item[column] : item[column].slice(0, 60) + '...'}
               </Text>
             ))}
           </View>

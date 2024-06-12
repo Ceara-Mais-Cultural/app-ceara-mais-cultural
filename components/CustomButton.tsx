@@ -1,12 +1,12 @@
-import { StyleSheet, TouchableOpacity, ActivityIndicator, ViewStyle } from 'react-native';
+import { StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import React from 'react';
 import { colors } from '@/constants';
 import CustomText from './CustomText';
 
 const CustomButton = ({ title, handlePress, isLoading, type, disabled, height=50, width=250 }: any) => {
   return (
-    <TouchableOpacity onPress={handlePress} disabled={disabled} style={[disabled ? styles.disabled : styles.commonBackground, { height, width }, type === 'Primary' ? styles.backgroundPrimary : type === 'Secondary' ? styles.backgroundSecondary : styles.backgroundLink]}>
-      {(isLoading && <ActivityIndicator />) || (!isLoading && <CustomText style={[styles.commonTitle, type === 'Primary' ? styles.titlePrimary : type === 'Secondary' ? styles.titleSecondary : styles.titleLink]}>{title}</CustomText>)}
+    <TouchableOpacity onPress={handlePress} disabled={disabled} style={[disabled ? styles.disabled : styles.commonBackground, { height, width }, type === 'Primary' ? styles.backgroundPrimary : type === 'Secondary' ? styles.backgroundSecondary : type === 'Link' ? styles.backgroundLink : styles.backgroundDanger]}>
+      {(isLoading && <ActivityIndicator />) || (!isLoading && <CustomText style={[styles.commonTitle, type === 'Primary' ? styles.titlePrimary : type === 'Secondary' ? styles.titleSecondary : type === 'Link' ? styles.titleLink : styles.titleDanger]}>{title}</CustomText>)}
     </TouchableOpacity>
   );
 };
@@ -62,5 +62,14 @@ const styles = StyleSheet.create({
 
   titleLink: {
     color: colors.primary,
+    textDecorationLine: 'underline'
+  },
+
+  backgroundDanger: {
+    backgroundColor: colors.danger,
+  },
+
+  titleDanger: {
+    color: colors.white,
   },
 });

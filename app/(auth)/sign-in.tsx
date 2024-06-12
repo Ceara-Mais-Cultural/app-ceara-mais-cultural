@@ -83,7 +83,6 @@ export default SignIn;
 const styles = StyleSheet.create({
   background: {
     backgroundColor: colors.background_dark,
-    marginTop: 0,
   },
 
   logoArea: {
@@ -105,21 +104,21 @@ const styles = StyleSheet.create({
     backgroundColor: colors.off_white,
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
-    bottom: 0,
     padding: 25,
     position: 'absolute',
-    width: '100%',
+    bottom: 0,
+    flex: 1,
   },
 
   doLoginText: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: colors.text,
     marginBottom: 15,
   },
 
   buttonArea: {
-    marginVertical: 25,
+    marginTop: 25,
+    marginBottom: 15,
     marginHorizontal: 'auto',
     rowGap: 35,
   },

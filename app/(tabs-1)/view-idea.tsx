@@ -1,7 +1,7 @@
 import { View, StyleSheet, ScrollView, Image, TouchableOpacity, Pressable, Modal, Alert } from 'react-native';
 import React, { useCallback, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, icons } from '@/constants';
+import { colors, icons, images } from '@/constants';
 import { router } from 'expo-router';
 import { useLocalSearchParams } from 'expo-router';
 import CustomText from '@/components/CustomText';
@@ -9,6 +9,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import AuthService from '../services/authService';
 import CustomButton from '@/components/CustomButton';
 import PostDataService from '../services/postDataService';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 
 const ViewIdea = () => {
   const { idea } = useLocalSearchParams();
@@ -26,9 +28,29 @@ const ViewIdea = () => {
         const role = AuthService.getPermissionLevel(user);
         setRole(role);
       });
-      setParsedIdea(JSON.parse(idea));
+      setParsedIdea(JSON.parse(idea as any));
     }, [idea])
   );
+
+  const downloadAndShareFile = async () => {
+    try {
+      // URL do arquivo que você deseja baixar
+      const fileUrl = 'https://api.arya.ai/images/test.pdf';
+      const fileUri = FileSystem.documentDirectory + 'Termo de Abertura do Projeto.pdf';
+
+      // Baixar o arquivo
+      const { uri } = await FileSystem.downloadAsync(fileUrl, fileUri);
+
+      // Compartilhar o arquivo se possível
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri);
+      } else {
+        alert('O compartilhamento não está disponível na plataforma atual.');
+      }
+    } catch (error) {
+      console.error('Erro ao baixar ou compartilhar o arquivo:', error);
+    }
+  };
 
   const openModal = (approve: boolean) => {
     setAction(approve);
@@ -61,9 +83,10 @@ const ViewIdea = () => {
         <Pressable onPress={() => router.navigate('/ideas')}>
           <Image style={styles.arrowBack} source={icons.arrowBack} resizeMode='contain' tintColor={colors.white} />
         </Pressable>
-        <CustomText style={styles.title}>{parsedIdea?.title}</CustomText>
+        <CustomText style={styles.pageTitle}>Visualizar Ideia</CustomText>
         <CustomText>{'          '}</CustomText>
       </View>
+
       {/* MODAL */}
       <Modal animationType='fade' transparent={true} visible={isModalVisible} onRequestClose={() => closeModal(false)}>
         <View style={styles.modalContainer}>
@@ -78,111 +101,132 @@ const ViewIdea = () => {
         </View>
       </Modal>
       {/* END MODAL */}
+
       <ScrollView>
         <View style={styles.card}>
-          {/* Status */}
-          <View style={styles.status}>
-            <CustomText style={styles.label}>Status: {parsedIdea?.status === 'approved' ? 'Aprovado' : parsedIdea?.status === 'pending' ? 'Em análise' : 'Recusado'}</CustomText>
+          <CustomText style={styles.title}>{parsedIdea?.title}</CustomText>
+          {/* Imagem */}
+          <View style={{ height: 200, width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', marginVertical: 10 }}>
+            <Image source={images.example} style={styles.image} resizeMode='contain' />
           </View>
 
-          {/* Imagem */}
-          <View style={{ height: 200, width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', marginVertical: 10, borderWidth: 1, borderColor: colors.primary }}>
-            <CustomText style={styles.label}>Imagem</CustomText>
+          {/* Detalhes do Projeto */}
+          <View style={styles.fieldArea}>
+            <CustomText style={styles.sectionTitle}>Detalhes do Projeto</CustomText>
+            <CustomText style={styles.label}>
+              Identificador: <CustomText>{parsedIdea?.id}</CustomText>
+            </CustomText>
+            <CustomText style={styles.label}>
+              Status: <CustomText>{parsedIdea?.status === 'approved' ? 'Aprovada' : parsedIdea?.status === 'pending' ? 'Em análise' : parsedIdea?.status === 'declined' ? 'Recusada' : 'Esperando documentação'}</CustomText>
+            </CustomText>
           </View>
 
           {/* Descrição */}
           <View style={styles.fieldArea}>
-            <CustomText style={styles.label}>Descrição</CustomText>
+            <CustomText style={styles.sectionTitle}>Descrição</CustomText>
             <CustomText>{parsedIdea?.description}</CustomText>
           </View>
 
-          {/* 2 Colunas */}
-          <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
-            {/* Coluna Esquerda */}
-            <View>
-              {/* Município */}
-              <View style={styles.fieldArea}>
-                <CustomText style={styles.label}>Município</CustomText>
-                <CustomText>{parsedIdea?.city_name}</CustomText>
-              </View>
-              {/* Comunidade */}
-              <View style={styles.fieldArea}>
-                <CustomText style={styles.label}>Comunidade</CustomText>
-                <CustomText>{parsedIdea?.community ? parsedIdea?.community : '-'}</CustomText>
-              </View>
-            </View>
+          <View>
+            <CustomText style={styles.sectionTitle}>Localização</CustomText>
 
-            {/* Coluna Direita */}
-            <View>
-              {/* Bairro */}
-              <View style={styles.fieldArea}>
-                <CustomText style={styles.label}>Bairro</CustomText>
-                <CustomText>{parsedIdea?.neighborhood_name}</CustomText>
-              </View>
-              {/* Categoria */}
-              <View style={styles.fieldArea}>
-                <CustomText style={styles.label}>Categoria</CustomText>
-                <CustomText>{parsedIdea?.category_name}</CustomText>
-              </View>
+            {/* Município */}
+            <View style={styles.fieldArea}>
+              <CustomText style={styles.label}>
+                Município: <CustomText>{parsedIdea?.city_name}</CustomText>
+              </CustomText>
             </View>
-          </View>
-
-          <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+            {/* Bairro */}
+            <View style={styles.fieldArea}>
+              <CustomText style={styles.label}>
+                Bairro: <CustomText>{parsedIdea?.neighborhood_name}</CustomText>
+              </CustomText>
+            </View>
+            {/* Comunidade */}
+            <View style={styles.fieldArea}>
+              <CustomText style={styles.label}>
+                Comunidade: <CustomText>{parsedIdea?.community}</CustomText>
+              </CustomText>
+            </View>
             {/* Local */}
             <View style={styles.fieldArea}>
-              <CustomText style={styles.label}>Local</CustomText>
-              <CustomText>{parsedIdea?.location}</CustomText>
-            </View>
-
-            {/* Data de Submissão */}
-            <View style={styles.fieldArea}>
-              <CustomText style={styles.label}>Data</CustomText>
-              <CustomText>{parsedIdea?.created_at}</CustomText>
+              <CustomText style={styles.label}>
+                Local: <CustomText>{parsedIdea?.location}</CustomText>
+              </CustomText>
             </View>
           </View>
 
-          <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+          <View>
+            <CustomText style={styles.sectionTitle}>Informações Adicionais</CustomText>
+
+            {/* Categoria */}
+            <View style={styles.fieldArea}>
+              <CustomText style={styles.label}>
+                Categoria: <CustomText>{parsedIdea?.category_name}</CustomText>
+              </CustomText>
+            </View>
+
             {/* Agente Cultural */}
             {role !== 'Mobilizador' && (
               <View style={styles.fieldArea}>
-                <CustomText style={styles.label}>Agente Cultural</CustomText>
-                <CustomText>{parsedIdea?.author_name}</CustomText>
+                <CustomText style={styles.label}>
+                  Agente Cultural: <CustomText>{parsedIdea?.author_name}</CustomText>
+                </CustomText>
               </View>
             )}
 
             {/* Mobilizador */}
             <View style={styles.fieldArea}>
-              <CustomText style={styles.label}>Mobilizador</CustomText>
-              <CustomText>{parsedIdea?.promoter_name}</CustomText>
+              <CustomText style={styles.label}>
+                Mobilizador: <CustomText>{parsedIdea?.promoter_name}</CustomText>
+              </CustomText>
+            </View>
+
+            {/* Data de Submissão */}
+            <View style={styles.fieldArea}>
+              <CustomText style={styles.label}>
+                Data de Submissão: <CustomText>{parsedIdea?.created_at}</CustomText>
+              </CustomText>
             </View>
           </View>
 
           {/* Documentos */}
+          <CustomText style={styles.sectionTitle}>Documentos</CustomText>
+
           <View style={styles.fieldArea}>
-            <CustomText style={styles.label}>Documentos</CustomText>
-            <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <CustomText>Termo de Abertura</CustomText>
-              <TouchableOpacity style={{ display: 'flex', alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', borderRadius: 5, borderWidth: 1, borderColor: colors.menu_secundary, paddingVertical: 10, paddingHorizontal: 20, backgroundColor: colors.white }}>
-                <CustomText style={{ color: colors.menu_secundary, top: 2 }}>Download</CustomText>
-                <Image style={{ width: 20, height: 20, marginLeft: 10 }} source={icons.download} tintColor={colors.menu_secundary} resizeMode='contain' />
-              </TouchableOpacity>
-            </View>
+            {parsedIdea.file ? (
+              <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <CustomText>Termo de Abertura</CustomText>
+                <TouchableOpacity onPress={async () => downloadAndShareFile()} style={{ display: 'flex', alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', borderRadius: 5, borderWidth: 1, borderColor: colors.menu_secundary, paddingVertical: 10, paddingHorizontal: 20, backgroundColor: colors.white }}>
+                  <CustomText style={{ color: colors.menu_secundary, top: 2 }}>Download</CustomText>
+                  <Image style={{ width: 20, height: 20, marginLeft: 10 }} source={icons.download} tintColor={colors.menu_secundary} resizeMode='contain' />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <CustomText>Nenhum documento anexado.</CustomText>
+            )}
           </View>
 
-          {(parsedIdea?.status == 'pending' && role == 'Comissão' && (
-            <View style={styles.evaluationArea}>
-              <CustomText style={styles.evaluationText}>Avaliação</CustomText>
+          {parsedIdea?.status !== 'waiting' ? (
+            <>
+              {(parsedIdea?.status == 'pending' && role == 'Comissão' && (
+                <View style={styles.evaluationArea}>
+                  <CustomText style={styles.evaluationText}>Avaliação</CustomText>
 
-              <CustomButton title='Aprovar' type='Primary' width={200} height={50} style={{ marginHorizontal: 'auto' }} handlePress={() => openModal(true)} />
-              <CustomButton title='Recusar' type='Secondary' width={200} height={50} style={{ marginHorizontal: 'auto' }} handlePress={() => openModal(false)} />
-            </View>
-          )) ||
-            (role == 'Comissão' && (
-              <View style={styles.evaluationArea}>
-                <CustomText style={styles.evaluationText}>Avaliação</CustomText>
-                <CustomText>Essa ideia já foi votada e {parsedIdea.status == 'approved' ? 'aprovada' : 'recusada'}.</CustomText>
-              </View>
-            ))}
+                  <CustomButton title='Aprovar' type='Primary' width={200} height={50} style={{ marginHorizontal: 'auto' }} handlePress={() => openModal(true)} />
+                  <CustomButton title='Recusar' type='Secondary' width={200} height={50} style={{ marginHorizontal: 'auto' }} handlePress={() => openModal(false)} />
+                </View>
+              )) ||
+                (role == 'Comissão' && (
+                  <View style={styles.evaluationArea}>
+                    <CustomText style={styles.evaluationText}>Avaliação</CustomText>
+                    <CustomText>Essa ideia já foi votada e {parsedIdea.status == 'approved' ? 'aprovada' : 'recusada'}.</CustomText>
+                  </View>
+                ))}
+            </>
+          ) : (
+            <></>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -212,11 +256,10 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
   },
-  title: {
+  pageTitle: {
     color: colors.white,
     fontFamily: 'PoppinsBold',
     fontSize: 18,
-    maxWidth: '80%',
     textAlign: 'center',
   },
   card: {
@@ -227,14 +270,38 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   status: {
-    marginHorizontal: 'auto',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   fieldArea: {
-    marginVertical: 10,
+    marginBottom: 5,
+  },
+  image: {
+    width: 200,
+    height: 200,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    marginBottom: 5,
   },
   label: {
     fontFamily: 'PoppinsBold',
+    color: colors.primary,
   },
+  title: {
+    fontFamily: 'PoppinsBold',
+    marginHorizontal: 'auto',
+    fontSize: 18,
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    fontFamily: 'PoppinsBold',
+    fontSize: 18,
+    marginTop: 10,
+    marginBottom: 0,
+  },
+
+  // MODAL
   evaluationArea: {
     display: 'flex',
     alignItems: 'center',

@@ -1,16 +1,25 @@
-import { ScrollView, View, StyleSheet } from 'react-native';
-import React, { useState } from 'react';
+import { ScrollView, View, StyleSheet, Alert } from 'react-native';
+import React, { useCallback, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '@/constants';
 import CustomButton from '@/components/CustomButton';
 import * as FileSystem from 'expo-file-system';
 import * as DocumentPicker from 'expo-document-picker';
-import { router } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import CustomText from '@/components/CustomText';
 import * as Sharing from 'expo-sharing';
+import PostDataService from '../services/postDataService';
 
 const SendDocument = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const { idea } = useLocalSearchParams();
+  const [parsedIdea, setParsedIdea] = useState<any>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      setParsedIdea(JSON.parse(idea as any));
+    }, [idea])
+  );
 
   const uploadDocument = async () => {
     setIsLoading(true);
@@ -19,11 +28,46 @@ const SendDocument = () => {
       const file = pickedFile.assets;
       if (!file) return;
       // Mandar pro Back
-      setTimeout(() => {
-        setIsLoading(false);
-        // Abrir modal de confirmação
-        router.replace('ideas');
-      }, 2000);
+
+      setIsLoading(true);
+      const body = {
+        title: parsedIdea.title,
+        description: parsedIdea.description,
+        city: parsedIdea.city,
+        neighborhood: parsedIdea.neighborhood,
+        community: parsedIdea.community,
+        location: parsedIdea.location,
+        category: parsedIdea.category,
+        author: parsedIdea.author,
+        promoter: parsedIdea.promoter,
+        status: 'pending',
+        // file: file[0].uri,
+      };
+
+      console.log(body);
+
+      router.replace('ideas');
+
+      PostDataService.editIdea(body, parsedIdea.id)
+        .then((res) => {
+          setIsLoading(false);
+          router.replace('ideas');
+        })
+        .catch((error) => {
+          if (error.response && error.response.data) {
+            const errors = error.response.data;
+            let errorMessage = '';
+            for (const key in errors) {
+              if (errors[key]) {
+                errorMessage += `${key}: ${errors[key].join(', ')}\n`;
+              }
+            }
+            Alert.alert('Erro ao enviar documento', errorMessage);
+          } else {
+            Alert.alert('Erro', 'Ocorreu um erro ao enviar documento.');
+          }
+          console.error('Erro ao enviar documento.', error);
+        });
     } catch (err) {
       console.error(err);
       setIsLoading(false);
@@ -55,7 +99,7 @@ const SendDocument = () => {
       <ScrollView style={styles.background}>
         <View style={styles.card}>
           <CustomText style={styles.title}>Enviar Documento</CustomText>
-          <CustomText style={styles.text}>Após preencher o documento de abertura de projeto que foi baixado no seu celular, envie-o aqui. Não se preocupe, você poderá voltar para essa tela mais tarde.</CustomText>
+          <CustomText style={styles.text}>Após preencher o documento de abertura de projeto que foi baixado no seu celular, envie-o aqui. Mas não se preocupe, você poderá voltar para essa tela mais tarde.</CustomText>
           <View style={styles.buttonArea}>
             <CustomButton title='Baixar modelo' width={150} type='Secondary' handlePress={async () => downloadAndShareFile()} />
           </View>

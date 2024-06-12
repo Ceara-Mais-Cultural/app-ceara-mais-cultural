@@ -8,6 +8,7 @@ import { router } from 'expo-router';
 import FormSelectField from '@/components/FormSelectField';
 import CustomButton from '@/components/CustomButton';
 import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from 'expo-image-picker';
 import AuthService from '../services/authService';
 import GetDataService from '../services/getDataService';
 import PostDataService from '../services/postDataService';
@@ -40,7 +41,9 @@ const Create = () => {
     useCallback(() => {
       AuthService.getUserData().then((userData: any) => {
         const user = JSON.parse(userData);
+        setForm({ ...form, municipio: user.city, bairro: user.neighborhood});
         setUser(user);
+        getMunicipioBairros(user.city);
         const role = AuthService.getPermissionLevel(user);
         if (role === 'Agente Cultural') {
           setIsAdmin(false);
@@ -86,14 +89,22 @@ const Create = () => {
     });
   };
 
-  const uploadFileHandler = async () => {
-    try {
-      const pickedFile = await DocumentPicker.getDocumentAsync();
-      const file = pickedFile.assets;
-      if (!file) return;
-      setForm({ ...form, imagens: file });
-    } catch (err) {
-      console.error(err);
+  const selectMunicipio = (idMunicipio: number) => {
+    if (!idMunicipio) return;
+    setForm({ ...form, municipio: idMunicipio })
+    getMunicipioBairros(idMunicipio);
+  }
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 4],
+      quality: 1,
+    });
+    if (result.assets) {
+      // console.log(result?.assets[0]);
+      setForm({ ...form, imagem: result.assets[0].uri });
     }
   };
 
@@ -149,31 +160,19 @@ const Create = () => {
           <FormField title={isAdmin ? 'Descreva a ideia do agente cultural' : 'Conte um pouco sobre a sua ideia'} size='bg' required='true' value={form.descricao} handleChangeText={(e: any) => setForm({ ...form, descricao: e })} />
           <FormSelectField title='Categoria' required='true' selected={form.categoria} array={categorias} label='name' value='id' placeholder='Selecione' handleSelectChange={(e: any) => setForm({ ...form, categoria: e })} />
           <FormSelectField title={isAdmin ? 'Agente Cultural' : 'Mobilizador(a)'} selected={form.mobilizadorAgente} array={isAdmin ? agentesCulturais : mobilizadores} label='full_name' value='id' placeholder='Nenhum(a)' handleSelectChange={(e: any) => setForm({ ...form, mobilizadorAgente: e })} />
-          <FormSelectField
-            title='Município'
-            required='true'
-            selected={form.municipio}
-            array={municipios}
-            label='name'
-            value='id'
-            placeholder='Selecione'
-            handleSelectChange={(e: any) => {
-              setForm({ ...form, municipio: e });
-              getMunicipioBairros(e);
-            }}
-          />
-          <FormSelectField title='Bairro' required='true' selected={form.bairro} array={bairros} label='name' value='id' placeholder='Selecione' handleSelectChange={(e: any) => setForm({ ...form, bairro: e })} />
+          <FormSelectField title='Município' required='true' selected={form.municipio} disabled={true} array={municipios} label='name' value='id' placeholder='Selecione' handleSelectChange={(idMunicipio: number) => { selectMunicipio(idMunicipio) }} />
+          <FormSelectField title='Bairro' disabled={true} required='true' selected={form.bairro} array={bairros} label='name' value='id' placeholder='Selecione' handleSelectChange={(e: any) => setForm({ ...form, bairro: e })} />
           <FormField title='Comunidade' value={form.comunidade} handleChangeText={(e: any) => setForm({ ...form, comunidade: e })} />
           <FormField title='Local' size='md' required='true' value={form.local} handleChangeText={(e: any) => setForm({ ...form, local: e })} />
 
-          {form.imagens.length ? (
+          {form.imagem ? (
             <View style={styles.buttonArea}>
-              <CustomButton title='Escolher outra imagem' width={150} type='Secondary' handlePress={async () => uploadFileHandler()} />
-              <Image source={{ uri: form.imagens[0]?.uri }} style={styles.image} />
+              <CustomButton title='Escolher outra imagem' width={150} type='Secondary' handlePress={async () => pickImage()} />
+              <Image source={{ uri: form.imagem }} style={styles.image} />
             </View>
           ) : (
             <View style={styles.buttonArea}>
-              <CustomButton title='Escolha uma imagem' width={150} type='Secondary' handlePress={async () => uploadFileHandler()} />
+              <CustomButton title='Escolha uma imagem' width={150} type='Secondary' handlePress={async () => pickImage()} />
             </View>
           )}
 
@@ -233,6 +232,8 @@ const styles = StyleSheet.create({
 
   buttonArea: {
     marginTop: 15,
-    marginHorizontal: 'auto',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

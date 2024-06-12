@@ -65,14 +65,15 @@ const Reports = () => {
     const statusMap: { [key: string]: string } = {
       pending: 'Em análise',
       waiting: 'Aguardando documentação',
-      approved: 'Aprovado',
+      approved: 'Aprovada',
+      declined: 'Recusada',
     };
 
-    return statusMap[status] || 'Recusado';
+    return statusMap[status];
   };
 
   const removeUnnecessaryKeys = (idea: any) => {
-    const { author, category, city, neighborhood, promoter, ...rest } = idea;
+    const { author, category, city, neighborhood, promoter, image, file, ...rest } = idea;
     return rest;
   };
 

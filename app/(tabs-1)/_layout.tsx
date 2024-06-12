@@ -27,22 +27,28 @@ const styles = StyleSheet.create({
     height: 25,
   },
   currentTab: {
-    fontWeight: 'bold',
+    fontFamily: 'PoppinsBold',
     color: colors.primary,
   },
 });
 
 const TabsLayout = () => {
   const [isAdmin, setIsAdmin] = useState(false);
+  const [role, setRole] = useState('Agente Cultural');
 
   useEffect(() => {
-    AuthService.getUserData().then((userData: any) => {
-      const user = JSON.parse(userData);
-      const role = AuthService.getPermissionLevel(user);
-      if (role !== 'Agente Cultural') setIsAdmin(true);
-      else setIsAdmin(false);
-    });
-  }, [AsyncStorage.getItem('userData')]);
+    const fetchUserData = async () => {
+      const userData = await AsyncStorage.getItem('userData');
+      if (userData) {
+        const user = JSON.parse(userData);
+        const userRole = AuthService.getPermissionLevel(user);
+        setRole(userRole);
+        setIsAdmin(userRole !== 'Agente Cultural');
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   return (
     <>
@@ -83,7 +89,7 @@ const TabsLayout = () => {
           options={{
             title: 'Profile',
             headerShown: false,
-            tabBarIcon: ({ color, focused }: any) => <TabIcon icon={icons.profile} color={color} name='Perfil' focused={focused} />,
+            tabBarIcon: ({ color, focused }) => <TabIcon icon={icons.profile} color={color} name='Perfil' focused={focused} />,
           }}
         />
 
@@ -92,20 +98,20 @@ const TabsLayout = () => {
           options={{
             title: 'Idéias',
             headerShown: false,
-            tabBarIcon: ({ color, focused }: any) => <TabIcon icon={icons.home} color={color} name='Ideias' focused={focused} />,
+            tabBarIcon: ({ color, focused }) => <TabIcon icon={icons.home} color={color} name='Ideias' focused={focused} />,
           }}
         />
 
-        {(isAdmin && (
+        {isAdmin ? (
           <Tabs.Screen
             name='reports'
             options={{
               title: 'Relatório',
               headerShown: false,
-              tabBarIcon: ({ color, focused }: any) => <TabIcon icon={icons.reports} color={color} name='Relatório' focused={focused} />,
+              tabBarIcon: ({ color, focused }) => <TabIcon icon={icons.reports} color={color} name='Relatório' focused={focused} />,
             }}
           />
-        )) || (
+        ) : (
           <Tabs.Screen
             name='reports'
             options={{
@@ -116,14 +122,25 @@ const TabsLayout = () => {
           />
         )}
 
-        <Tabs.Screen
-          name='create'
-          options={{
-            title: 'Create',
-            headerShown: false,
-            tabBarIcon: ({ color, focused }: any) => <TabIcon icon={icons.plus} color={color} name='Novo' focused={focused} />,
-          }}
-        />
+        {!isAdmin ? (
+          <Tabs.Screen
+            name='create'
+            options={{
+              title: 'Create',
+              headerShown: false,
+              tabBarIcon: ({ color, focused }) => <TabIcon icon={icons.plus} color={color} name='Novo' focused={focused} />,
+            }}
+          />
+        ) : (
+          <Tabs.Screen
+            name='create'
+            options={{
+              title: 'Create',
+              headerShown: false,
+              tabBarButton: () => null,
+            }}
+          />
+        )}
 
         <Tabs.Screen name='view-idea' options={{ headerShown: false, tabBarButton: () => null }} />
         <Tabs.Screen name='pre-register' options={{ headerShown: false, tabBarButton: () => null }} />

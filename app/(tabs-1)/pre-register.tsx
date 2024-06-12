@@ -1,7 +1,7 @@
 import { ScrollView, View, StyleSheet, Image } from 'react-native';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, icons } from '@/constants';
+import { colors, images } from '@/constants';
 import CustomButton from '@/components/CustomButton';
 import { router } from 'expo-router';
 import * as FileSystem from 'expo-file-system';
@@ -43,7 +43,7 @@ const PreRegister = () => {
       <ScrollView style={styles.background}>
         <View style={styles.card}>
           <CustomText style={styles.title}>Projeto Pré-Cadastrado</CustomText>
-          <Image source={icons.checkmarkCircle} style={styles.image} tintColor={colors.confirm} />
+          <Image source={images.success} style={styles.image} />
           <CustomText style={styles.text}>Faça o download do termo de abertura do projeto com o botão abaixo para detalhar sua ideia com o nosso modelo.</CustomText>
           <View style={styles.buttonArea}>
             <CustomButton title='Baixar modelo de projeto' type='Primary' isLoading={isLoading} handlePress={async () => handleClick()} />
