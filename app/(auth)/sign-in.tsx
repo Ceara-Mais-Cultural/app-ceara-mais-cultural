@@ -36,19 +36,7 @@ const SignIn = () => {
         }
       })
       .catch((error) => {
-        if (error.response && error.response.data) {
-          const errors = error.response.data;
-          let errorMessage = '';
-          for (const key in errors) {
-            if (errors[key]) {
-              errorMessage += `${key}: ${errors[key].join(', ')}\n`;
-            }
-          }
-          Alert.alert('Erro ao fazer login.', errorMessage);
-        } else {
-          Alert.alert('Erro', 'Ocorreu um erro ao fazer login.');
-        }
-        console.error('Erro ao fazer login.', error);
+        Alert.alert('Erro ao fazer login', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
       })
       .finally(() => {
         setIsLoading(false);

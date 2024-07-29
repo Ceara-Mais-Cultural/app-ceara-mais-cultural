@@ -17,7 +17,8 @@ const SendDocument = () => {
 
   useFocusEffect(
     useCallback(() => {
-      setParsedIdea(JSON.parse(idea as any));
+      const parsed = JSON.parse(idea as any);
+      setParsedIdea(parsed);
     }, [idea])
   );
 
@@ -43,8 +44,6 @@ const SendDocument = () => {
         status: 'pending',
         // file: file[0].uri,
       };
-
-      console.log(body);
 
       router.replace('ideas');
 

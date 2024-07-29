@@ -215,7 +215,7 @@ const Ideas = () => {
 
         {role === 'Agente Cultural' && (
           <View style={styles.content}>
-            <AccordionItem title='Minhas Ideias' isExpanded={!loading}>
+            <AccordionItem title='Minhas Ideias' isExpanded={true}>
               {(!loading && filteredIdeas.length > 0 && (
                 <View style={styles.cardsArea}>
                   {filteredIdeas.map((idea: any) => (

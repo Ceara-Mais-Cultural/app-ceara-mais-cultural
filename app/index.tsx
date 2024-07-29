@@ -43,7 +43,7 @@ export default function Index() {
         <Container style={styles.content}>
           <Image source={images.logo} style={styles.logo} resizeMode='contain' />
           <CustomText style={styles.sloganText}>
-            Onde a <CustomText style={styles.sloganHighlight}>arte</CustomText> encontra <CustomText style={styles.sloganHighlight}>oportunidade</CustomText>
+            Onde a <CustomText style={styles.sloganHighlight}>cultura</CustomText> encontra <CustomText style={styles.sloganHighlight}>oportunidade</CustomText>
           </CustomText>
 
           <View style={styles.listPromoters}>
