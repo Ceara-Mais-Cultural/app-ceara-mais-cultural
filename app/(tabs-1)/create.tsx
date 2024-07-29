@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet, ScrollView, Image, Alert } from 'react-native';
-import React, { useCallback, useEffect, useState } from 'react';
+import { View, StyleSheet, ScrollView, Image, Alert } from 'react-native';
+import React, { useCallback, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FormField from '@/components/FormField';
@@ -7,12 +7,12 @@ import { colors } from '@/constants';
 import { router } from 'expo-router';
 import FormSelectField from '@/components/FormSelectField';
 import CustomButton from '@/components/CustomButton';
-import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import AuthService from '../services/authService';
 import GetDataService from '../services/getDataService';
 import PostDataService from '../services/postDataService';
 import CustomText from '@/components/CustomText';
+import { readFile } from 'react-native-fs';
 
 const Create = () => {
   const initialFormState = {
@@ -24,7 +24,7 @@ const Create = () => {
     bairro: '',
     comunidade: '',
     local: '',
-    imagens: [] as DocumentPicker.DocumentPickerAsset[],
+    image: '',
   };
 
   const [user, setUser] = useState<any>(null);
@@ -41,7 +41,7 @@ const Create = () => {
     useCallback(() => {
       AuthService.getUserData().then((userData: any) => {
         const user = JSON.parse(userData);
-        setForm({ ...form, municipio: user.city, bairro: user.neighborhood});
+        setForm({ ...form, municipio: user.city, bairro: user.neighborhood });
         setUser(user);
         getMunicipioBairros(user.city);
         const role = AuthService.getPermissionLevel(user);
@@ -91,9 +91,9 @@ const Create = () => {
 
   const selectMunicipio = (idMunicipio: number) => {
     if (!idMunicipio) return;
-    setForm({ ...form, municipio: idMunicipio })
+    setForm({ ...form, municipio: idMunicipio });
     getMunicipioBairros(idMunicipio);
-  }
+  };
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -103,8 +103,8 @@ const Create = () => {
       quality: 1,
     });
     if (result.assets) {
-      // console.log(result?.assets[0]);
-      setForm({ ...form, imagem: result.assets[0].uri });
+      console.log(result?.assets[0]);
+      setForm({ ...form, image: result.assets[0] });
     }
   };
 
@@ -113,39 +113,43 @@ const Create = () => {
     return formValid;
   };
 
-  const submit = () => {
-    setIsLoading(true);
-    const body = {
-      title: form.titulo,
-      description: form.descricao,
-      city: user.city,
-      neighborhood: user.neighborhood,
-      community: form.community,
-      location: form.local,
-      category: form.categoria,
-      author: isAdmin ? Number(form.mobilizadorAgente) || null : user.id,
-      promoter: isAdmin ? user.id : Number(form.mobilizadorAgente) || null,
-      status: 'waiting',
-    };
-    PostDataService.createIdea(body)
+  // Função para converter o URI em um blob
+  const uriToBlob = async (uri: string) => {
+    try {
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      return blob;
+    } catch (error) {
+      console.error('Error converting URI to blob:', error);
+      throw error;
+    }
+  };
+
+  // Função para enviar a imagem
+  const submit = async () => {
+    const uri = form.image.uri;
+    const blob = await uriToBlob(uri);
+    const formData = new FormData();
+
+    formData.append('image', blob, 'photo.jpg');
+    formData.append('title', form.titulo);
+    formData.append('description', form.descricao);
+    formData.append('city', user.city);
+    formData.append('neighborhood', user.neighborhood);
+    formData.append('community', form.community);
+    formData.append('location', form.local);
+    formData.append('category', form.categoria);
+    formData.append('author', isAdmin ? Number(form.mobilizadorAgente || null).toString() : user.id.toString());
+    formData.append('promoter', isAdmin ? user.id.toString() : Number(form.mobilizadorAgente || null).toString());
+    formData.append('status', 'waiting');
+
+    PostDataService.createIdea(formData)
       .then((res) => {
         setIsLoading(false);
         router.replace('pre-register');
       })
       .catch((error) => {
-        if (error.response && error.response.data) {
-          const errors = error.response.data;
-          let errorMessage = '';
-          for (const key in errors) {
-            if (errors[key]) {
-              errorMessage += `${key}: ${errors[key].join(', ')}\n`;
-            }
-          }
-          Alert.alert('Erro ao cadastrar ideia', errorMessage);
-        } else {
-          Alert.alert('Erro', 'Ocorreu um erro ao cadastrar ideia.');
-        }
-        console.error('Erro ao cadastrar ideia.', error);
+        Alert.alert('Erro', 'Ocorreu um erro ao cadastrar ideia.' + JSON.stringify(error));
       });
   };
 
@@ -159,16 +163,28 @@ const Create = () => {
           <FormField title='Título' required='true' value={form.titulo} handleChangeText={(e: any) => setForm({ ...form, titulo: e })} />
           <FormField title={isAdmin ? 'Descreva a ideia do agente cultural' : 'Conte um pouco sobre a sua ideia'} size='bg' required='true' value={form.descricao} handleChangeText={(e: any) => setForm({ ...form, descricao: e })} />
           <FormSelectField title='Categoria' required='true' selected={form.categoria} array={categorias} label='name' value='id' placeholder='Selecione' handleSelectChange={(e: any) => setForm({ ...form, categoria: e })} />
-          <FormSelectField title={isAdmin ? 'Agente Cultural' : 'Mobilizador(a)'} selected={form.mobilizadorAgente} array={isAdmin ? agentesCulturais : mobilizadores} label='full_name' value='id' placeholder='Nenhum(a)' handleSelectChange={(e: any) => setForm({ ...form, mobilizadorAgente: e })} />
-          <FormSelectField title='Município' required='true' selected={form.municipio} disabled={true} array={municipios} label='name' value='id' placeholder='Selecione' handleSelectChange={(idMunicipio: number) => { selectMunicipio(idMunicipio) }} />
+          <FormSelectField title={isAdmin ? 'Agente Cultural' : 'Mobilizador(a)'} required={isAdmin} selected={form.mobilizadorAgente} array={isAdmin ? agentesCulturais : mobilizadores} label='full_name' value='id' placeholder='Nenhum(a)' handleSelectChange={(e: any) => setForm({ ...form, mobilizadorAgente: e })} />
+          <FormSelectField
+            title='Município'
+            required='true'
+            selected={form.municipio}
+            disabled={true}
+            array={municipios}
+            label='name'
+            value='id'
+            placeholder='Selecione'
+            handleSelectChange={(idMunicipio: number) => {
+              selectMunicipio(idMunicipio);
+            }}
+          />
           <FormSelectField title='Bairro' disabled={true} required='true' selected={form.bairro} array={bairros} label='name' value='id' placeholder='Selecione' handleSelectChange={(e: any) => setForm({ ...form, bairro: e })} />
           <FormField title='Comunidade' value={form.comunidade} handleChangeText={(e: any) => setForm({ ...form, comunidade: e })} />
           <FormField title='Local' size='md' required='true' value={form.local} handleChangeText={(e: any) => setForm({ ...form, local: e })} />
 
-          {form.imagem ? (
+          {form.image ? (
             <View style={styles.buttonArea}>
               <CustomButton title='Escolher outra imagem' width={150} type='Secondary' handlePress={async () => pickImage()} />
-              <Image source={{ uri: form.imagem }} style={styles.image} />
+              <Image source={{ uri: form.image?.uri }} style={styles.image} />
             </View>
           ) : (
             <View style={styles.buttonArea}>

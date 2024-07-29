@@ -22,50 +22,48 @@ const SendDocument = () => {
     }, [idea])
   );
 
+  const uriToBlob = async (uri: string) => {
+    try {
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      return blob;
+    } catch (error) {
+      console.error('Error converting URI to blob:', error);
+      throw error;
+    }
+  };
+
   const uploadDocument = async () => {
     setIsLoading(true);
     try {
       const pickedFile = await DocumentPicker.getDocumentAsync();
       const file = pickedFile.assets;
       if (!file) return;
-      // Mandar pro Back
 
-      setIsLoading(true);
-      const body = {
-        title: parsedIdea.title,
-        description: parsedIdea.description,
-        city: parsedIdea.city,
-        neighborhood: parsedIdea.neighborhood,
-        community: parsedIdea.community,
-        location: parsedIdea.location,
-        category: parsedIdea.category,
-        author: parsedIdea.author,
-        promoter: parsedIdea.promoter,
-        status: 'pending',
-        // file: file[0].uri,
-      };
+      const uri = file[0].uri;
+      const blob = await uriToBlob(uri);
+      const formData = new FormData();
 
-      router.replace('ideas');
+      formData.append('file', blob, 'projeto.pdf');
 
-      PostDataService.editIdea(body, parsedIdea.id)
+      formData.append('title', parsedIdea.title);
+      formData.append('description', parsedIdea.description);
+      formData.append('city', parsedIdea.city);
+      formData.append('neighborhood', parsedIdea.neighborhood);
+      formData.append('community', parsedIdea.community);
+      formData.append('location', parsedIdea.location);
+      formData.append('category', parsedIdea.category);
+      formData.append('author', parsedIdea.author);
+      formData.append('promoter', parsedIdea.promoter);
+      formData.append('status', 'pending');
+
+      PostDataService.editIdea(formData, parsedIdea.id)
         .then((res) => {
           setIsLoading(false);
           router.replace('ideas');
         })
-        .catch((error) => {
-          if (error.response && error.response.data) {
-            const errors = error.response.data;
-            let errorMessage = '';
-            for (const key in errors) {
-              if (errors[key]) {
-                errorMessage += `${key}: ${errors[key].join(', ')}\n`;
-              }
-            }
-            Alert.alert('Erro ao enviar documento', errorMessage);
-          } else {
-            Alert.alert('Erro', 'Ocorreu um erro ao enviar documento.');
-          }
-          console.error('Erro ao enviar documento.', error);
+        .catch(() => {
+          Alert.alert('Erro', 'Ocorreu um erro ao enviar documento.');
         });
     } catch (err) {
       console.error(err);

@@ -1,4 +1,4 @@
-import { View, StyleSheet, ScrollView, Image, TouchableOpacity, Pressable, Modal, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, Image, Text, TouchableOpacity, Pressable, Modal, Alert } from 'react-native';
 import React, { useCallback, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, icons, images } from '@/constants';
@@ -35,7 +35,7 @@ const ViewIdea = () => {
   const downloadAndShareFile = async () => {
     try {
       // URL do arquivo que você deseja baixar
-      const fileUrl = 'https://api.arya.ai/images/test.pdf';
+      const fileUrl = parsedIdea.file;
       const fileUri = FileSystem.documentDirectory + 'Termo de Abertura do Projeto.pdf';
 
       // Baixar o arquivo
@@ -70,6 +70,7 @@ const ViewIdea = () => {
       PostDataService.voteIdea(idIdea, body)
         .then((res) => {
           Alert.prompt(res.data);
+          router.replace('ideas');
         })
         .catch((error) => {
           console.error('Erro ao registrar voto.');
@@ -107,7 +108,7 @@ const ViewIdea = () => {
           <CustomText style={styles.title}>{parsedIdea?.title}</CustomText>
           {/* Imagem */}
           <View style={{ height: 200, width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', marginVertical: 10 }}>
-            <Image source={images.example} style={styles.image} resizeMode='contain' />
+            <Image source={{ uri: parsedIdea.image }}  style={styles.image} resizeMode='contain' />
           </View>
 
           {/* Detalhes do Projeto */}
@@ -145,7 +146,7 @@ const ViewIdea = () => {
             {/* Comunidade */}
             <View style={styles.fieldArea}>
               <CustomText style={styles.label}>
-                Comunidade: <CustomText>{parsedIdea?.community}</CustomText>
+                Comunidade: <CustomText>{parsedIdea?.community !== 'undefined' ? parsedIdea?.community : ''}</CustomText>
               </CustomText>
             </View>
             {/* Local */}

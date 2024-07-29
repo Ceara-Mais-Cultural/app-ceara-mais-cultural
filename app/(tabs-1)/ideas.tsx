@@ -230,7 +230,7 @@ const Ideas = () => {
         {role === 'Mobilizador' && (
           <>
             <View style={styles.content}>
-              <AccordionItem title={'Ideias Promovidas em ' + user.city_name} isExpanded={!loading}>
+              <AccordionItem title={'Ideias Promovidas em ' + user.city_name} isExpanded={true}>
                 {(!loading && filteredIdeas.length > 0 && (
                   <View style={styles.cardsArea}>
                     {filteredIdeas.map((idea: any) => {
@@ -264,7 +264,7 @@ const Ideas = () => {
             <View key={city.id} style={styles.content}>
               <CustomText style={styles.cardTitle}>{city.name}</CustomText>
               <View style={styles.subCard}>
-                <AccordionItem title='Ideias Submetidas'>
+                <AccordionItem title='Ideias Submetidas' isExpanded={true}>
                   {(!loading && filteredIdeas.length > 0 && (
                     <View style={styles.cardsArea}>
                       {filteredIdeas.map((idea: any) => {

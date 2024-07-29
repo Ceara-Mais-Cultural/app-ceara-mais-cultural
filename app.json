@@ -40,9 +40,6 @@
     "extra": {
       "router": {
         "origin": false
-      },
-      "eas": {
-        "projectId": "474a6378-0d07-46f9-b7d5-89e53bc02284"
       }
     },
     "owner": "ceara-mais-cultural"

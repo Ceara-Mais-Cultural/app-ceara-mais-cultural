@@ -33,7 +33,6 @@ const styles = StyleSheet.create({
 });
 
 const TabsLayout = () => {
-  const [isAdmin, setIsAdmin] = useState(false);
   const [role, setRole] = useState('Agente Cultural');
 
   useEffect(() => {
@@ -42,8 +41,8 @@ const TabsLayout = () => {
       if (userData) {
         const user = JSON.parse(userData);
         const userRole = AuthService.getPermissionLevel(user);
+        console.log(userRole);
         setRole(userRole);
-        setIsAdmin(userRole !== 'Agente Cultural');
       }
     };
 
@@ -102,7 +101,7 @@ const TabsLayout = () => {
           }}
         />
 
-        {isAdmin ? (
+        {role !== 'Agente Cultural' ? (
           <Tabs.Screen
             name='reports'
             options={{
@@ -122,7 +121,7 @@ const TabsLayout = () => {
           />
         )}
 
-        {!isAdmin ? (
+        {role !== 'Comissão' ? (
           <Tabs.Screen
             name='create'
             options={{
