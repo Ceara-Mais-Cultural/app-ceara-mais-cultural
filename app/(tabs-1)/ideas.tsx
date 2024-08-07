@@ -43,12 +43,12 @@ const Ideas = () => {
 
   const loadScreen = () => {
     setFilter(initialFilter);
-    getMunicipios();
     AuthService.getUserData().then((userData: any) => {
       const user = JSON.parse(userData);
       setUser(user);
       const role = AuthService.getPermissionLevel(user);
       setRole(role);
+      getMunicipios();
       getMunicipioBairros(user.city);
       if (role === 'Agente Cultural') getIdeas(user.id);
       else if (role === 'Mobilizador') getIdeas(user.id, user.city);
@@ -253,7 +253,7 @@ const Ideas = () => {
                       }
                     })}
                   </View>
-                )) || <Text style={{ marginHorizontal: 'auto' }}>Nenhuma ideia aprovada!</Text>}
+                )) || <Text style={{ marginHorizontal: 'auto' }}>Nenhum item encontrado!</Text>}
               </AccordionItem>
             </View>
           </>
@@ -268,7 +268,7 @@ const Ideas = () => {
                   {(!loading && filteredIdeas.length > 0 && (
                     <View style={styles.cardsArea}>
                       {filteredIdeas.map((idea: any) => {
-                        if (idea.status !== 'approved' && idea.city_name === city.name) {
+                        if (idea.status !== 'approved' && idea.status !== 'waiting' && idea.city_name === city.name) {
                           return <_IdeaCard key={idea.id} idea={idea} onPress={() => handleViewCardNav(idea)} />;
                         }
                       })}
@@ -289,7 +289,7 @@ const Ideas = () => {
                         }
                       })}
                     </View>
-                  )) || <Text style={{ marginHorizontal: 'auto' }}>Nenhuma ideia aprovada!</Text>}
+                  )) || <Text style={{ marginHorizontal: 'auto' }}>Nenhum item encontrado!</Text>}
                 </AccordionItem>
               </View>
             </View>

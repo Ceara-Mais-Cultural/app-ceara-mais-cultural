@@ -10,9 +10,8 @@ import CustomButton from '@/components/CustomButton';
 import * as ImagePicker from 'expo-image-picker';
 import AuthService from '../services/authService';
 import GetDataService from '../services/getDataService';
-import PostDataService from '../services/postDataService';
 import CustomText from '@/components/CustomText';
-import { readFile } from 'react-native-fs';
+import { api } from '../services/api';
 
 const Create = () => {
   const initialFormState = {
@@ -36,12 +35,14 @@ const Create = () => {
   const [municipios, setMunicipios] = useState([]);
   const [bairros, setBairros] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [authToken, setAuthToken] = useState<any>(null);
 
   useFocusEffect(
     useCallback(() => {
       AuthService.getUserData().then((userData: any) => {
         const user = JSON.parse(userData);
-        setForm({ ...form, municipio: user.city, bairro: user.neighborhood });
+        setForm({ ...form, municipio: user.city, bairro: user.neighborhood, comunidade: user.community });
+        setAuthToken(userData.token);
         setUser(user);
         getMunicipioBairros(user.city);
         const role = AuthService.getPermissionLevel(user);
@@ -103,7 +104,6 @@ const Create = () => {
       quality: 1,
     });
     if (result.assets) {
-      console.log(result?.assets[0]);
       setForm({ ...form, image: result.assets[0] });
     }
   };
@@ -113,44 +113,47 @@ const Create = () => {
     return formValid;
   };
 
-  // Função para converter o URI em um blob
-  const uriToBlob = async (uri: string) => {
-    try {
-      const response = await fetch(uri);
-      const blob = await response.blob();
-      return blob;
-    } catch (error) {
-      console.error('Error converting URI to blob:', error);
-      throw error;
-    }
-  };
-
   // Função para enviar a imagem
   const submit = async () => {
-    const uri = form.image.uri;
-    const blob = await uriToBlob(uri);
     const formData = new FormData();
-
-    formData.append('image', blob, 'photo.jpg');
+    formData.append('image', {
+      uri: form.image.uri,
+      type: form.image.mimeType,
+      name: form.image.fileName,
+    } as any);
     formData.append('title', form.titulo);
     formData.append('description', form.descricao);
     formData.append('city', user.city);
     formData.append('neighborhood', user.neighborhood);
-    formData.append('community', form.community);
+    if (!!form.community) {
+      formData.append('community', form.community);
+    }
     formData.append('location', form.local);
     formData.append('category', form.categoria);
-    formData.append('author', isAdmin ? Number(form.mobilizadorAgente || null).toString() : user.id.toString());
-    formData.append('promoter', isAdmin ? user.id.toString() : Number(form.mobilizadorAgente || null).toString());
+    formData.append('author', isAdmin ? form.mobilizadorAgente : user.id);
+    if (isAdmin) {
+      formData.append('promoter', user.id);
+    } else if (!!form.mobilizadorAgente) {
+      formData.append('promoter', form.mobilizadorAgente);
+    }
     formData.append('status', 'waiting');
 
-    PostDataService.createIdea(formData)
-      .then((res) => {
-        setIsLoading(false);
-        router.replace('pre-register');
-      })
-      .catch((error) => {
-        Alert.alert('Erro', 'Ocorreu um erro ao cadastrar ideia.' + JSON.stringify(error));
-      });
+    const response = await fetch(`${api.defaults.baseURL}/projects/`, {
+      method: 'post',
+      body: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${authToken}`,
+      },
+    });
+
+    if (response.status == 201) {
+      const createdIdea = await response.json();
+      router.push({ pathname: 'pre-register', params: { idea: JSON.stringify(createdIdea) } });
+    } else {
+      Alert.alert('Erro ao cadastrar ideia', 'Desculpe pelo transtorno. Tente novamente mais tarde.')
+    }
+    setIsLoading(false);
   };
 
   return (

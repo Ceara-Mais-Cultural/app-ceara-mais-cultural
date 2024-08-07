@@ -83,19 +83,7 @@ const SignUp = () => {
         router.replace('/sign-in');
       })
       .catch((error) => {
-        if (error.response && error.response.data) {
-          const errors = error.response.data;
-          let errorMessage = '';
-          for (const key in errors) {
-            if (errors[key]) {
-              errorMessage += `${key}: ${errors[key].join(', ')}\n`;
-            }
-          }
-          Alert.alert('Erro ao criar conta', errorMessage);
-        } else {
-          Alert.alert('Erro', 'Ocorreu um erro ao criar a conta.');
-        }
-        console.error('Erro ao criar conta.', error);
+        Alert.alert('Erro ao criar conta', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
       })
       .finally(() => {
         setIsLoading(false);

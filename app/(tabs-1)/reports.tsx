@@ -13,7 +13,7 @@ import AuthService from '../services/authService';
 import getDataService from '../services/getDataService';
 
 const Reports = () => {
-  const tableHeader = ['Identificador', 'Título', 'Descrição', 'Município', 'Bairro', 'Comunidade', 'Local', 'Categoria', 'Data de Submissão', 'Agente Cultural', 'Mobilizador', 'Status'];
+  const tableHeader = ['Identificador', 'Título', 'Descrição', 'Município', 'Bairro', 'Comunidade', 'Local', 'Categoria', 'Data de Submissão', 'Agente Cultural', 'Status', 'Mobilizador'];
   const [ideas, setIdeas] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -40,6 +40,7 @@ const Reports = () => {
           return {
             ...idea,
             created_at: formatDate(idea.created_at),
+            promoter_name: idea.promoter_name ? idea.promoter_name : '-',
             status: translateStatus(idea.status),
           };
         })
@@ -47,7 +48,7 @@ const Reports = () => {
 
       setIdeas(formattedIdeas);
     } catch (error) {
-      console.error('Erro ao buscar projetos: ', error);
+      Alert.alert('Erro ao carregar ideias', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
     } finally {
       setIsLoading(false);
     }
@@ -102,7 +103,7 @@ const Reports = () => {
       });
 
       if (!(await Sharing.isAvailableAsync())) {
-        Alert.alert('Erro', 'Compartilhamento não está disponível');
+        Alert.alert('Erro ao compartilhar arquivo', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
         return;
       }
 
@@ -111,7 +112,7 @@ const Reports = () => {
         dialogTitle: 'Compartilhar arquivo Excel',
       });
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível exportar e compartilhar o arquivo Excel');
+      Alert.alert('Erro ao exportar relatório', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
     }
   };
 

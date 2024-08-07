@@ -45,10 +45,10 @@ const ViewIdea = () => {
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri);
       } else {
-        alert('O compartilhamento não está disponível na plataforma atual.');
+        Alert.alert('Erro ao baixar arquivo', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
       }
     } catch (error) {
-      console.error('Erro ao baixar ou compartilhar o arquivo:', error);
+      Alert.alert('Erro ao baixar arquivo', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
     }
   };
 
@@ -72,8 +72,8 @@ const ViewIdea = () => {
           Alert.prompt(res.data);
           router.replace('ideas');
         })
-        .catch((error) => {
-          console.error('Erro ao registrar voto.');
+        .catch(() => {
+          Alert.alert('Erro ao registrar voto', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
         });
     }
   };
@@ -92,7 +92,7 @@ const ViewIdea = () => {
       <Modal animationType='fade' transparent={true} visible={isModalVisible} onRequestClose={() => closeModal(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <CustomText style={{ textAlign: 'center' }}>{`Você tem certeza que deseja ${action ? 'APROVAR' : 'RECUSAR'} essa ideia? Essa ação é irreversível.`}</CustomText>
+            <CustomText style={{ textAlign: 'center' }}>{`Você tem certeza que deseja ${action ? 'APROVAR' : 'RECUSAR'} essa ideia?`}</CustomText>
 
             <View style={styles.modalButtons}>
               <CustomButton title='Não' type='Secondary' width={100} height={50} handlePress={() => closeModal(false)} />

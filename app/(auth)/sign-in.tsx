@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AuthService from '../services/authService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomText from '@/components/CustomText';
+import { api, setAuthToken } from '../services/api';
 
 const SignIn = () => {
   AsyncStorage.removeItem('userData');
@@ -26,14 +27,11 @@ const SignIn = () => {
     };
     AuthService.login(body)
       .then((res) => {
-        if (res.status === 200) {
-          const response = res.data;
-          AsyncStorage.setItem('userData', JSON.stringify(response.user));
-          AsyncStorage.setItem('authToken', response.token);
-          router.replace('/stages');
-        } else {
-          throw 'Erro';
-        }
+        const response = res.data;
+        AsyncStorage.setItem('userData', JSON.stringify(response.user));
+        AsyncStorage.setItem('authToken', response.token);
+        setAuthToken(response.token);
+        router.replace('/stages');
       })
       .catch((error) => {
         Alert.alert('Erro ao fazer login', 'Desculpe pelo transtorno. Tente novamente mais tarde.');

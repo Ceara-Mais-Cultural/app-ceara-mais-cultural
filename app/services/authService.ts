@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from './api';
+import { api } from './api';
 
 
 const AuthService = {
@@ -31,6 +31,11 @@ const AuthService = {
     const user = JSON.parse(userData as any);
 
     return user.id;
+  },
+
+  getAuthToken: async () => {
+    const token = await AsyncStorage.getItem('authToken');
+    return token;
   },
 
   getAuthStatus: async () => {

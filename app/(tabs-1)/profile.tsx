@@ -58,7 +58,7 @@ const Profile = () => {
 
           <View style={styles.buttonArea}>
             <CustomButton title='Sair' type='Secondary' handlePress={() => router.replace('/sign-in')} />
-            <CustomButton title='Excluir conta' type='Danger' handlePress={() => Linking.openURL('https://ceara-mais-cultural-api-production.up.railway.app/excluir-conta/')} />
+            <CustomButton title='Excluir conta' type='Danger' handlePress={() => Linking.openURL('https://ceara-mais-cultural-api.up.railway.app/excluir-conta/')} />
           </View>
 
         </View>

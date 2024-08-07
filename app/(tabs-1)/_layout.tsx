@@ -41,7 +41,6 @@ const TabsLayout = () => {
       if (userData) {
         const user = JSON.parse(userData);
         const userRole = AuthService.getPermissionLevel(user);
-        console.log(userRole);
         setRole(userRole);
       }
     };

@@ -1,21 +1,30 @@
-import { ScrollView, View, StyleSheet, Image } from 'react-native';
-import React, { useState } from 'react';
+import { ScrollView, View, StyleSheet, Image, Alert } from 'react-native';
+import React, { useCallback, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, images } from '@/constants';
 import CustomButton from '@/components/CustomButton';
-import { router } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import CustomText from '@/components/CustomText';
 
 const PreRegister = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const { idea } = useLocalSearchParams();
+  const [parsedIdea, setParsedIdea] = useState<any>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      const parsed = JSON.parse(idea as any);
+      setParsedIdea(parsed);
+    }, [idea])
+  );
 
   const handleClick = async () => {
     setIsLoading(true);
     await downloadAndShareFile();
     setIsLoading(false);
-    router.push('send-document');
+    router.push({ pathname: 'send-document', params: { idea: JSON.stringify(parsedIdea) } });
   };
 
   const downloadAndShareFile = async () => {
@@ -31,10 +40,10 @@ const PreRegister = () => {
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri);
       } else {
-        alert('O compartilhamento não está disponível na plataforma atual.');
+        Alert.alert('Erro ao baixar arquivo', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
       }
     } catch (error) {
-      console.error('Erro ao baixar ou compartilhar o arquivo:', error);
+      Alert.alert('Erro ao baixar arquivo', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
     }
   };
 

@@ -1,15 +1,15 @@
-import api from './api';
+import { api } from './api';
 
 const PostDataService = {
-    createIdea: async (formData: any) => {
-      return await api.post('/projects/', formData, );
+    createIdea: async (formData: FormData) => {
+      return await api.post('/projects/', formData);
     },
 
-    editIdea: async (formData: any, id: number) => {
+    editIdea: async (formData: FormData, id: number) => {
       return await api.put(`/projects/${id}/`, formData);
     },
 
-    voteIdea: async (idIdea: any, formData: any) => {
+    voteIdea: async (idIdea: number, formData: any) => {
       return await api.post(`/projects/${idIdea}/vote/`, formData);
     },
 }

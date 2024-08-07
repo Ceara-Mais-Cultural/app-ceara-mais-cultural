@@ -8,67 +8,70 @@ import * as DocumentPicker from 'expo-document-picker';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import CustomText from '@/components/CustomText';
 import * as Sharing from 'expo-sharing';
-import PostDataService from '../services/postDataService';
+import { api } from '../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import AuthService from '../services/authService';
 
 const SendDocument = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { idea } = useLocalSearchParams();
   const [parsedIdea, setParsedIdea] = useState<any>(null);
+  const [authToken, setAuthToken] = useState<any>(null);
 
   useFocusEffect(
     useCallback(() => {
       const parsed = JSON.parse(idea as any);
       setParsedIdea(parsed);
+      AuthService.getAuthToken().then((token) => {
+        setAuthToken(token);
+      });
     }, [idea])
   );
 
-  const uriToBlob = async (uri: string) => {
-    try {
-      const response = await fetch(uri);
-      const blob = await response.blob();
-      return blob;
-    } catch (error) {
-      console.error('Error converting URI to blob:', error);
-      throw error;
-    }
-  };
-
   const uploadDocument = async () => {
     setIsLoading(true);
-    try {
-      const pickedFile = await DocumentPicker.getDocumentAsync();
-      const file = pickedFile.assets;
-      if (!file) return;
+    const pickedFile = await DocumentPicker.getDocumentAsync({ type: 'application/pdf' });
+    const assets = pickedFile.assets;
+    if (!assets) return;
 
-      const uri = file[0].uri;
-      const blob = await uriToBlob(uri);
-      const formData = new FormData();
+    const file = assets[0];
+    const formData = new FormData();
+    formData.append('file', {
+      uri: file.uri,
+      type: file.mimeType,
+      name: file.name,
+    } as any);
 
-      formData.append('file', blob, 'projeto.pdf');
-
-      formData.append('title', parsedIdea.title);
-      formData.append('description', parsedIdea.description);
-      formData.append('city', parsedIdea.city);
-      formData.append('neighborhood', parsedIdea.neighborhood);
+    formData.append('title', parsedIdea.title);
+    formData.append('description', parsedIdea.description);
+    formData.append('city', parsedIdea.city);
+    formData.append('neighborhood', parsedIdea.neighborhood);
+    if (!!parsedIdea.community) {
       formData.append('community', parsedIdea.community);
-      formData.append('location', parsedIdea.location);
-      formData.append('category', parsedIdea.category);
-      formData.append('author', parsedIdea.author);
-      formData.append('promoter', parsedIdea.promoter);
-      formData.append('status', 'pending');
-
-      PostDataService.editIdea(formData, parsedIdea.id)
-        .then((res) => {
-          setIsLoading(false);
-          router.replace('ideas');
-        })
-        .catch(() => {
-          Alert.alert('Erro', 'Ocorreu um erro ao enviar documento.');
-        });
-    } catch (err) {
-      console.error(err);
-      setIsLoading(false);
     }
+    formData.append('location', parsedIdea.location);
+    formData.append('category', parsedIdea.category);
+    formData.append('author', parsedIdea.author);
+    if (!!parsedIdea.promoter) {
+      formData.append('promoter', parsedIdea.promoter);
+    }
+    formData.append('status', 'pending');
+
+    const response = await fetch(`${api.defaults.baseURL}/projects/${parsedIdea.id}/`, {
+      method: 'put',
+      body: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${authToken}`,
+      },
+    });
+
+    if (response.status == 200) {
+      router.navigate('ideas');
+    } else {
+      Alert.alert('Erro ao enviar arquivo', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
+    }
+    setIsLoading(false);
   };
 
   const downloadAndShareFile = async () => {
@@ -84,10 +87,10 @@ const SendDocument = () => {
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri);
       } else {
-        alert('O compartilhamento não está disponível na plataforma atual.');
+        Alert.alert('Erro ao baixar arquivo', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
       }
     } catch (error) {
-      console.error('Erro ao baixar ou compartilhar o arquivo:', error);
+      Alert.alert('Erro ao baixar arquivo', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
     }
   };
 
