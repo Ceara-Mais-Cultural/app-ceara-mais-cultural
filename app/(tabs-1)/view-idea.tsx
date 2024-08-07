@@ -35,7 +35,7 @@ const ViewIdea = () => {
   const downloadAndShareFile = async () => {
     try {
       // URL do arquivo que você deseja baixar
-      const fileUrl = parsedIdea.file;
+      const fileUrl = parsedIdea.file.replace('http', 'https');
       const fileUri = FileSystem.documentDirectory + 'Termo de Abertura do Projeto.pdf';
 
       // Baixar o arquivo

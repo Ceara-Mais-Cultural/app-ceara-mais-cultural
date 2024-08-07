@@ -117,7 +117,7 @@ const Create = () => {
   const submit = async () => {
     const formData = new FormData();
     formData.append('image', {
-      uri: form.image.uri,
+      uri: form.image.uri.replace('http', 'https'),
       type: form.image.mimeType,
       name: form.image.fileName,
     } as any);
@@ -187,7 +187,7 @@ const Create = () => {
           {form.image ? (
             <View style={styles.buttonArea}>
               <CustomButton title='Escolher outra imagem' width={150} type='Secondary' handlePress={async () => pickImage()} />
-              <Image source={{ uri: form.image?.uri }} style={styles.image} />
+              <Image source={{ uri: form.image?.uri.replace('http', 'https') }} style={styles.image} />
             </View>
           ) : (
             <View style={styles.buttonArea}>
