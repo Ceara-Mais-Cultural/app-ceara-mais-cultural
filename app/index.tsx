@@ -82,6 +82,8 @@ export default function Index() {
 
           <CustomText style={{marginVertical: 10}}>Seja parte da revolução cultural do Ceará!</CustomText>
           <CustomButton title='Participar' type='Primary' height={60} width={250} handlePress={() => router.push('/sign-in')} />
+
+          <CustomText style={{marginTop: 10}}>Versão 0.4</CustomText>
         </Container>
       </ScrollView>
 

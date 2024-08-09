@@ -117,7 +117,7 @@ const Create = () => {
   const submit = async () => {
     const formData = new FormData();
     formData.append('image', {
-      uri: form.image.uri.replace('http', 'https'),
+      uri: form.image.uri,
       type: form.image.mimeType,
       name: form.image.fileName,
     } as any);

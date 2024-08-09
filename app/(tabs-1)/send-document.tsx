@@ -37,7 +37,7 @@ const SendDocument = () => {
     const file = assets[0];
     const formData = new FormData();
     formData.append('file', {
-      uri: file.uri.replace('http', 'https'),
+      uri: file.uri,
       type: file.mimeType,
       name: file.name,
     } as any);
