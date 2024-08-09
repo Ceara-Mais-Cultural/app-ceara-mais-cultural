@@ -10,7 +10,7 @@ const FormSelectField = ({ title, placeholder, selected, array, label, value, re
       <CustomText style={styles.title}>{`${title} ${required ? '*' : ''}`}</CustomText>
       <View style={styles.inputArea}>
         <Picker style={styles.picker} enabled={!disabled} selectedValue={selected} onValueChange={handleSelectChange}>
-          <Picker.Item style={styles.placeholder} label={placeholder} value='null' />
+          <Picker.Item style={styles.placeholder} label={placeholder} value={null} />
           {array && array.map((option: any, index: number) => (
             <Picker.Item key={index} label={option[label]} value={option[value]} />
           ))}

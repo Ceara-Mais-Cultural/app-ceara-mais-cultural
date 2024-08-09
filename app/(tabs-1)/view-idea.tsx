@@ -108,7 +108,7 @@ const ViewIdea = () => {
           <CustomText style={styles.title}>{parsedIdea?.title}</CustomText>
           {/* Imagem */}
           <View style={{ height: 200, width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', marginVertical: 10 }}>
-            <Image source={{ uri: parsedIdea.image.replace('http', 'https') }}  style={styles.image} resizeMode='contain' />
+            <Image source={{ uri: parsedIdea?.image?.replace('http', 'https') }}  style={styles.image} resizeMode='contain' />
           </View>
 
           {/* Detalhes do Projeto */}

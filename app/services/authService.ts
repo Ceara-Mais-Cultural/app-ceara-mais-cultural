@@ -17,9 +17,9 @@ const AuthService = {
   },
 
   getPermissionLevel: (user: any) => {
-    if (user.is_superuser) {
+    if (user?.is_superuser) {
       return 'Comissão';
-    } else if (user.is_staff) {
+    } else if (user?.is_staff) {
       return 'Mobilizador';
     } else {
       return 'Agente Cultural';

@@ -9,7 +9,7 @@ const FormField = ({ title, placeholder, value, keyboardType, width = '100%', re
     <View style={[styles.formField, { width }]}>
       {title && <CustomText style={styles.title}>{`${title} ${required ? '*' : ''}`}</CustomText>}
       <View style={styles.inputArea}>
-        <TextInput style={[styles.input, title.toLowerCase().includes('senha') ? { width: '90%' } : { width: '100%' }]} keyboardType={keyboardType} value={value} placeholder={placeholder} placeholderTextColor={colors.placeholder} editable={!disabled} onChangeText={handleChangeText} secureTextEntry={title.toLowerCase().includes('senha') && !showPassword} />
+        <TextInput style={[styles.input, title.toLowerCase().includes('senha') ? { width: '90%' } : { width: '100%' }]} keyboardType={keyboardType} value={value} placeholder={placeholder} placeholderTextColor={colors.placeholder} editable={!disabled} onChangeText={handleChangeText} secureTextEntry={title?.toLowerCase().includes('senha') && !showPassword} />
         {title.toLowerCase().includes('senha') && (
           <Pressable onPress={() => setShowPassword(!showPassword)}>
             <Image tintColor={colors.menu_secundary} style={styles.eyeIcon} source={!showPassword ? icons.eye : icons.eyeHide} resizeMode='contain' />

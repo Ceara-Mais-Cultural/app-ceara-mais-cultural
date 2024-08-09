@@ -75,6 +75,7 @@ const SignUp = () => {
       email: form.email,
       city: form.municipio,
       neighborhood: form.bairro,
+      community: form.comunidade ? form.comunidade : null,
       password: form.senha && form.confirmaSenha && form.senha === form.confirmaSenha ? form.senha : null,
     };
     AuthService.signUp(body)
