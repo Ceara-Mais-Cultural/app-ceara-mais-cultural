@@ -16,7 +16,8 @@ const Reports = () => {
   const tableHeader = ['Identificador', 'Título', 'Descrição', 'Município', 'Bairro', 'Comunidade', 'Local', 'Categoria', 'Data de Submissão', 'Agente Cultural', 'Status', 'Mobilizador'];
   const [ideas, setIdeas] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState(null as any);
 
   useFocusEffect(
     useCallback(() => {
@@ -31,8 +32,7 @@ const Reports = () => {
   );
 
   const getIdeas = async (idUser: number | null = null, idCity: number | null = null) => {
-    setIsLoading(true);
-
+    setLoading(true);
     try {
       const res = await getDataService.getProjects(idUser, idCity);
       const formattedIdeas = res.data
@@ -48,9 +48,9 @@ const Reports = () => {
 
       setIdeas(formattedIdeas);
     } catch (error) {
-      Alert.alert('Erro ao carregar ideias', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
+      setStatus('error');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -103,7 +103,11 @@ const Reports = () => {
       });
 
       if (!(await Sharing.isAvailableAsync())) {
-        Alert.alert('Erro ao compartilhar arquivo', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
+        setLoading(true);
+        setStatus('error');
+        setTimeout(() => {
+          setLoading(false);
+        }, 2500);
         return;
       }
 
@@ -112,7 +116,11 @@ const Reports = () => {
         dialogTitle: 'Compartilhar arquivo Excel',
       });
     } catch (error) {
-      Alert.alert('Erro ao exportar relatório', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
+      setLoading(true);
+      setStatus('error');
+      setTimeout(() => {
+        setLoading(false);
+      }, 2500);
     }
   };
 
@@ -120,7 +128,7 @@ const Reports = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <CustomText style={styles.title}>Relatório</CustomText>
-        <View style={styles.buttonArea}>{isAdmin && <CustomButton title='Exportar Excel' type='Primary' width={160} height={50} isLoading={isLoading} handlePress={async () => exportDataToExcel(ideas)} />}</View>
+        <View style={styles.buttonArea}>{isAdmin && <CustomButton title='Exportar Excel' type='Primary' width={160} height={50} isLoading={loading} handlePress={async () => exportDataToExcel(ideas)} />}</View>
       </View>
       <ScrollView style={styles.content}>
         <DynamicTable data={ideas} header={tableHeader} />

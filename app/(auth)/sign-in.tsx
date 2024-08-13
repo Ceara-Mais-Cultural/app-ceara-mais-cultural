@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, View, Image, Alert } from 'react-native';
+import { ScrollView, StyleSheet, View, Image } from 'react-native';
 import React, { useState } from 'react';
 import { colors, images } from '@/constants';
 import FormField from '@/components/FormField';
@@ -9,6 +9,7 @@ import AuthService from '../services/authService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomText from '@/components/CustomText';
 import { setAuthToken } from '../services/api';
+import Loader from '@/components/Loader';
 
 const SignIn = () => {
   AsyncStorage.removeItem('userData');
@@ -18,9 +19,11 @@ const SignIn = () => {
     senha: '',
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [status, setStatus] = useState(null as any);
 
   const submit = () => {
     setIsLoading(true);
+    setStatus(null);
     const body = {
       email: form.email,
       password: form.senha,
@@ -28,13 +31,16 @@ const SignIn = () => {
     AuthService.login(body)
       .then((res) => {
         const response = res.data;
+        setStatus('success');
         AsyncStorage.setItem('userData', JSON.stringify(response.user));
         AsyncStorage.setItem('authToken', response.token);
         setAuthToken(response.token);
-        router.replace('/stages');
+        setTimeout(() => {
+          router.replace('/stages');
+        }, 2500);
       })
       .catch(() => {
-        Alert.alert('Erro ao fazer login', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
+        setStatus('error');
       })
       .finally(() => {
         setIsLoading(false);
@@ -43,6 +49,7 @@ const SignIn = () => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
+      <Loader visible={isLoading} successMessage='Bem-vindo(a)!' errorMessage='Erro ao entrar' status={status} />
       <ScrollView style={styles.background} contentContainerStyle={{ height: '100%' }}>
         <View style={styles.logoArea}>
           <Image style={styles.logo} source={images.logoDark} resizeMode='contain' />
@@ -55,7 +62,7 @@ const SignIn = () => {
           <FormField title='Senha' value={form.senha} keyboardType='password' handleChangeText={(e: any) => setForm({ ...form, senha: e })} />
 
           <View style={styles.buttonArea}>
-            <CustomButton title='Entrar' type='Primary' handlePress={submit} isLoading={isLoading} disabled={form.email == '' || form.senha == ''} />
+            <CustomButton title='Entrar' type='Primary' handlePress={submit} isLoading={isLoading} disabled={form.email == '' || form.senha == '' || isLoading} />
             <CustomButton title='Criar uma conta' type='Link' handlePress={() => router.push('/sign-up')} />
           </View>
         </View>

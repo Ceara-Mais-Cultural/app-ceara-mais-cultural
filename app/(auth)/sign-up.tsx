@@ -9,6 +9,7 @@ import FormSelectField from '@/components/FormSelectField';
 import GetDataService from 'app/services/getDataService';
 import AuthService from '../services/authService';
 import CustomText from '@/components/CustomText';
+import Loader from '@/components/Loader';
 
 const SignUp = () => {
   const [step, setStep] = useState(1);
@@ -24,6 +25,8 @@ const SignUp = () => {
     confirmaSenha: '',
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [status, setStatus] = useState(null as any);
+
   const [municipios, setMunicipios] = useState<any>([]);
   const [bairros, setBairros] = useState<any>([]);
   const [cpfCnpjError, setCpfCnpjError] = useState<boolean>(false)
@@ -69,6 +72,7 @@ const SignUp = () => {
 
   const submit = () => {
     setIsLoading(true);
+    setStatus(null);
     const body = {
       cpf: form.cpfCnpj,
       full_name: form.nome,
@@ -80,11 +84,13 @@ const SignUp = () => {
     };
     AuthService.signUp(body)
       .then((res) => {
-        // Modal com o nome do cara?
-        router.replace('/sign-in');
+        setStatus('success');
+        setTimeout(() => {
+          router.replace('/sign-in');
+        }, 2500); 
       })
       .catch((error) => {
-        Alert.alert('Erro ao criar conta', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
+        setStatus('error');
       })
       .finally(() => {
         setIsLoading(false);
@@ -93,6 +99,7 @@ const SignUp = () => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
+      <Loader visible={isLoading} successMessage='Conta criada!' errorMessage='Erro ao criar conta' status={status} />
       <ScrollView style={styles.background}>
         <View style={styles.card}>
           <CustomText style={styles.title}>Crie sua conta</CustomText>

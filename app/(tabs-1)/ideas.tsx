@@ -13,6 +13,7 @@ import FormSelectField from '@/components/FormSelectField';
 import GetDataService from '../services/getDataService';
 import { colors, icons } from '@/constants';
 import AccordionItem from '@/components/AccordionItem';
+import Loader from '@/components/Loader';
 
 const Ideas = () => {
   const initialFilter = {
@@ -28,10 +29,12 @@ const Ideas = () => {
   const [bairros, setBairros] = useState([]);
   const [ideas, setIdeas] = useState([]);
   const [searchText, setSearchText] = useState('');
-  const [loading, setLoading] = useState(true);
   const [initialIdeas, setInitialIdeas] = useState([]);
   const [user, setUser] = useState<any>(null);
   const [role, setRole] = useState('Agente Cultural');
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState(null as any);
 
   useFocusEffect(
     useCallback(() => {
@@ -43,15 +46,16 @@ const Ideas = () => {
 
   const loadScreen = () => {
     setFilter(initialFilter);
+    setLoading(true);
     AuthService.getUserData().then((userData: any) => {
       const user = JSON.parse(userData);
       setUser(user);
       const role = AuthService.getPermissionLevel(user);
       setRole(role);
       getMunicipios();
-      getMunicipioBairros(user.city);
-      if (role === 'Agente Cultural') getIdeas(user.id);
-      else if (role === 'Mobilizador') getIdeas(user.id, user.city);
+      getMunicipioBairros(user?.city || 2);
+      if (role === 'Agente Cultural') getIdeas(user?.id || 4);
+      else if (role === 'Mobilizador') getIdeas(user?.id || 4, user?.city || 2);
       else getIdeas();
     });
   };
@@ -66,14 +70,19 @@ const Ideas = () => {
   }, []);
 
   const getIdeas = (idUser: any = null, idCity: any = null) => {
-    getDataService.getProjects(idUser, idCity).then((res) => {
-      res.data.forEach((idea: any) => {
-        idea.created_at = new Date(idea.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-      });
-      setInitialIdeas(res.data);
-      setIdeas(res.data);
-      setLoading(false);
-    });
+    getDataService.getProjects(idUser, idCity).then(
+      (res) => {
+        res.data.forEach((idea: any) => {
+          idea.created_at = new Date(idea.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        });
+        setInitialIdeas(res.data);
+        setIdeas(res.data);
+        setLoading(false);
+      },
+      () => {
+        setStatus('error');
+      }
+    );
   };
 
   const _IdeaCard = ({ idea, onPress }: any) => {
@@ -105,8 +114,6 @@ const Ideas = () => {
     if (role === 'Comissão' || idea.status !== 'waiting') router.push({ pathname: '/view-idea', params: { idea: JSON.stringify(idea) } });
     else router.push({ pathname: '/send-document', params: { idea: JSON.stringify(idea) } });
   };
-
-  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const openFilter = () => {
     setFilter({ ...filter, municipio: user.city, bairro: user.neighborhood, comunidade: user.comunity });
@@ -166,6 +173,8 @@ const Ideas = () => {
 
   return (
     <SafeAreaView style={{ flex: 1, paddingBottom: 80 }}>
+      <Loader visible={loading} errorMessage='Erro ao carregar ideias' successMessage='' status={status} />
+
       {/* MODAL */}
       <Modal animationType='fade' transparent={true} visible={isModalVisible} onRequestClose={() => closeFilter(false)}>
         <View style={styles.modalContainer}>

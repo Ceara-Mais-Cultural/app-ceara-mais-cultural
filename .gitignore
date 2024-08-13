@@ -20,3 +20,7 @@ web-build/
 
 expo-env.d.ts
 # @end expo-cli
+
+credentials.json
+eas.json
+app.json
