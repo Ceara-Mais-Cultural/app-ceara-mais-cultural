@@ -11,9 +11,10 @@ import XLSX from 'xlsx';
 import { useFocusEffect } from '@react-navigation/native';
 import AuthService from '../services/authService';
 import getDataService from '../services/getDataService';
+import Loader from '@/components/Loader';
 
 const Reports = () => {
-  const tableHeader = ['Identificador', 'Título', 'Descrição', 'Município', 'Bairro', 'Comunidade', 'Local', 'Categoria', 'Data de Submissão', 'Agente Cultural', 'Status', 'Mobilizador'];
+  const tableHeader = ['Identificador', 'Título', 'Descrição', 'Município', 'Bairro', 'Comunidade', 'Local', 'Categoria', 'Data de Submissão', 'Agente Cultural', 'Mobilizador', 'Status'];
   const [ideas, setIdeas] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -107,7 +108,7 @@ const Reports = () => {
         setStatus('error');
         setTimeout(() => {
           setLoading(false);
-        }, 2500);
+        }, 2000);
         return;
       }
 
@@ -120,12 +121,15 @@ const Reports = () => {
       setStatus('error');
       setTimeout(() => {
         setLoading(false);
-      }, 2500);
+      }, 2000);
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
+      
+      <Loader visible={loading} errorMessage='Erro ao carregar relatório' status={status} />
+
       <View style={styles.header}>
         <CustomText style={styles.title}>Relatório</CustomText>
         <View style={styles.buttonArea}>{isAdmin && <CustomButton title='Exportar Excel' type='Primary' width={160} height={50} isLoading={loading} handlePress={async () => exportDataToExcel(ideas)} />}</View>

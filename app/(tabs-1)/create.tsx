@@ -12,6 +12,7 @@ import AuthService from '../services/authService';
 import GetDataService from '../services/getDataService';
 import CustomText from '@/components/CustomText';
 import { api } from '../services/api';
+import Loader from '@/components/Loader';
 
 const Create = () => {
   const initialFormState = {
@@ -34,13 +35,15 @@ const Create = () => {
   const [mobilizadores, setMobilizadores] = useState([]);
   const [municipios, setMunicipios] = useState([]);
   const [bairros, setBairros] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState(null as any);
   const [authToken, setAuthToken] = useState<any>(null);
 
   useFocusEffect(
     useCallback(() => {
       AuthService.getUserData().then((userData: any) => {
         const user = JSON.parse(userData);
+        setForm({});
         setForm({ ...form, municipio: user.city, bairro: user.neighborhood, comunidade: user.community });
         setAuthToken(userData.token);
         setUser(user);
@@ -98,7 +101,7 @@ const Create = () => {
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 4],
       quality: 1,
@@ -115,6 +118,7 @@ const Create = () => {
 
   // Função para enviar a imagem
   const submit = async () => {
+    setLoading(true)
     const formData = new FormData();
     formData.append('image', {
       uri: form.image.uri,
@@ -151,26 +155,29 @@ const Create = () => {
       const createdIdea = await response.json();
       router.push({ pathname: 'pre-register', params: { idea: JSON.stringify(createdIdea) } });
     } else {
-      Alert.alert('Erro ao cadastrar ideia', 'Desculpe pelo transtorno. Tente novamente mais tarde.')
+      setStatus('error');
     }
-    setIsLoading(false);
+    setLoading(false);
   };
 
   return (
     <SafeAreaView style={styles.container}>
+
+      <Loader visible={loading} errorMessage='Erro ao cadastrar ideia' status={status} />
+
       <View style={styles.header}>
         <CustomText style={styles.title}>Ideia de Projeto</CustomText>
       </View>
       <ScrollView>
         <View style={styles.card}>
-          <FormField title='Título' required='true' value={form.titulo} handleChangeText={(e: any) => setForm({ ...form, titulo: e })} />
-          <FormField title={isAdmin ? 'Descreva a ideia do agente cultural' : 'Conte um pouco sobre a sua ideia'} size='bg' required='true' value={form.descricao} handleChangeText={(e: any) => setForm({ ...form, descricao: e })} />
-          <FormSelectField title='Categoria' required='true' selected={form.categoria} array={categorias} label='name' value='id' placeholder='Selecione' handleSelectChange={(e: any) => setForm({ ...form, categoria: e })} />
-          <FormSelectField title={isAdmin ? 'Agente Cultural' : 'Mobilizador(a)'} required={isAdmin} selected={form.mobilizadorAgente} array={isAdmin ? agentesCulturais : mobilizadores} label='full_name' value='id' placeholder='Nenhum(a)' handleSelectChange={(e: any) => setForm({ ...form, mobilizadorAgente: e })} />
+          <FormField title='Título' required='true' value={form?.titulo} handleChangeText={(e: any) => setForm({ ...form, titulo: e })} />
+          <FormField title={isAdmin ? 'Descreva a ideia do agente cultural' : 'Conte um pouco sobre a sua ideia'} size='bg' required='true' value={form?.descricao} handleChangeText={(e: any) => setForm({ ...form, descricao: e })} />
+          <FormSelectField title='Categoria' required='true' selected={form?.categoria} array={categorias} label='name' value='id' placeholder='Selecione' handleSelectChange={(e: any) => setForm({ ...form, categoria: e })} />
+          <FormSelectField title={isAdmin ? 'Agente Cultural' : 'Mobilizador(a)'} required={isAdmin} selected={form?.mobilizadorAgente} array={isAdmin ? agentesCulturais : mobilizadores} label='full_name' value='id' placeholder='Nenhum(a)' handleSelectChange={(e: any) => setForm({ ...form, mobilizadorAgente: e })} />
           <FormSelectField
             title='Município'
             required='true'
-            selected={form.municipio}
+            selected={form?.municipio}
             disabled={true}
             array={municipios}
             label='name'
@@ -180,14 +187,14 @@ const Create = () => {
               selectMunicipio(idMunicipio);
             }}
           />
-          <FormSelectField title='Bairro' disabled={true} required='true' selected={form.bairro} array={bairros} label='name' value='id' placeholder='Selecione' handleSelectChange={(e: any) => setForm({ ...form, bairro: e })} />
-          <FormField title='Comunidade' value={form.comunidade} handleChangeText={(e: any) => setForm({ ...form, comunidade: e })} />
-          <FormField title='Local' size='md' required='true' value={form.local} handleChangeText={(e: any) => setForm({ ...form, local: e })} />
+          <FormSelectField title='Bairro' disabled={true} required='true' selected={form?.bairro} array={bairros} label='name' value='id' placeholder='Selecione' handleSelectChange={(e: any) => setForm({ ...form, bairro: e })} />
+          <FormField title='Comunidade' value={form?.comunidade} handleChangeText={(e: any) => setForm({ ...form, comunidade: e })} />
+          <FormField title='Local' size='md' required='true' value={form?.local} handleChangeText={(e: any) => setForm({ ...form, local: e })} />
 
-          {form.image ? (
+          {form?.image ? (
             <View style={styles.buttonArea}>
-              <CustomButton title='Escolher outra imagem' width={150} type='Secondary' handlePress={async () => pickImage()} />
-              <Image source={{ uri: form.image?.uri.replace('http', 'https') }} style={styles.image} />
+              <CustomButton title='Trocar imagem' width={150} type='Secondary' handlePress={async () => pickImage()} />
+              <Image source={{ uri: form?.image?.uri.replace('http', 'https') }} style={styles.image} />
             </View>
           ) : (
             <View style={styles.buttonArea}>
@@ -196,7 +203,7 @@ const Create = () => {
           )}
 
           <View style={styles.buttonArea}>
-            <CustomButton title='Continuar' type='Primary' disabled={!validateForm()} handlePress={submit} isLoading={isLoading} />
+            <CustomButton title='Continuar' type='Primary' disabled={!validateForm()} handlePress={submit} isLoading={loading} />
           </View>
         </View>
       </ScrollView>

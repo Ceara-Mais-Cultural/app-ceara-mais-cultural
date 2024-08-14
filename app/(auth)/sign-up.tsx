@@ -87,7 +87,7 @@ const SignUp = () => {
         setStatus('success');
         setTimeout(() => {
           router.replace('/sign-in');
-        }, 2500); 
+        }, 2000); 
       })
       .catch((error) => {
         setStatus('error');

@@ -14,6 +14,7 @@ import GetDataService from '../services/getDataService';
 import { colors, icons } from '@/constants';
 import AccordionItem from '@/components/AccordionItem';
 import Loader from '@/components/Loader';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Ideas = () => {
   const initialFilter = {
@@ -44,20 +45,21 @@ const Ideas = () => {
 
   const filteredIdeas = ideas.filter((idea: any) => idea.title.toLowerCase().includes(searchText.toLowerCase()));
 
-  const loadScreen = () => {
+  const loadScreen = async () => {
     setFilter(initialFilter);
     setLoading(true);
-    AuthService.getUserData().then((userData: any) => {
-      const user = JSON.parse(userData);
-      setUser(user);
+    const storedUserData = await AsyncStorage.getItem('userData');
+    if (storedUserData) {
+      const user = JSON.parse(storedUserData);
       const role = AuthService.getPermissionLevel(user);
+      setUser(user)
       setRole(role);
       getMunicipios();
-      getMunicipioBairros(user?.city || 2);
-      if (role === 'Agente Cultural') getIdeas(user?.id || 4);
-      else if (role === 'Mobilizador') getIdeas(user?.id || 4, user?.city || 2);
+      getMunicipioBairros(user.city);
+      if (role === 'Agente Cultural') getIdeas(user.id);
+      else if (role === 'Mobilizador') getIdeas(user.id, user.city);
       else getIdeas();
-    });
+    }
   };
 
   const [refreshing, setRefreshing] = useState(false);
@@ -239,7 +241,7 @@ const Ideas = () => {
         {role === 'Mobilizador' && (
           <>
             <View style={styles.content}>
-              <AccordionItem title={'Ideias Promovidas em ' + user.city_name} isExpanded={true}>
+              <AccordionItem title={'Ideias Promovidas em ' + user?.city_name} isExpanded={true}>
                 {(!loading && filteredIdeas.length > 0 && (
                   <View style={styles.cardsArea}>
                     {filteredIdeas.map((idea: any) => {
@@ -253,7 +255,7 @@ const Ideas = () => {
             </View>
 
             <View style={styles.content}>
-              <AccordionItem title={'Ideias Aprovadas de ' + user.city_name}>
+              <AccordionItem title={'Ideias Aprovadas de ' + user?.city_name}>
                 {(!loading && filteredIdeas.length > 0 && (
                   <View style={styles.cardsArea}>
                     {filteredIdeas.map((idea: any) => {

@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, View, Image } from 'react-native';
+import { ScrollView, StyleSheet, View, Image, Alert } from 'react-native';
 import React, { useState } from 'react';
 import { colors, images } from '@/constants';
 import FormField from '@/components/FormField';
@@ -12,15 +12,13 @@ import { setAuthToken } from '../services/api';
 import Loader from '@/components/Loader';
 
 const SignIn = () => {
-  AsyncStorage.removeItem('userData');
-  AsyncStorage.removeItem('authToken');
   const [form, setForm] = useState({
     email: '',
     senha: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState(null as any);
-
+  
   const submit = () => {
     setIsLoading(true);
     setStatus(null);
@@ -29,15 +27,16 @@ const SignIn = () => {
       password: form.senha,
     };
     AuthService.login(body)
-      .then((res) => {
+      .then(async (res) => {
         const response = res.data;
         setStatus('success');
-        AsyncStorage.setItem('userData', JSON.stringify(response.user));
-        AsyncStorage.setItem('authToken', response.token);
+        const jsonValue = JSON.stringify(response.user);
+        await AsyncStorage.setItem('userData', jsonValue);
+        await AsyncStorage.setItem('authToken', response.token);
         setAuthToken(response.token);
         setTimeout(() => {
-          router.replace('/stages');
-        }, 2500);
+          router.push('/stages');
+        }, 2000);
       })
       .catch(() => {
         setStatus('error');

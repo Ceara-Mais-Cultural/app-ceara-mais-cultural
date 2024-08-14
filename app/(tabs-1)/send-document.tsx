@@ -9,11 +9,12 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import CustomText from '@/components/CustomText';
 import * as Sharing from 'expo-sharing';
 import { api } from '../services/api';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import AuthService from '../services/authService';
+import Loader from '@/components/Loader';
 
 const SendDocument = () => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState(null as any);
   const { idea } = useLocalSearchParams();
   const [parsedIdea, setParsedIdea] = useState<any>(null);
   const [authToken, setAuthToken] = useState<any>(null);
@@ -29,10 +30,13 @@ const SendDocument = () => {
   );
 
   const uploadDocument = async () => {
-    setIsLoading(true);
+    setLoading(true);
     const pickedFile = await DocumentPicker.getDocumentAsync({ type: 'application/pdf' });
     const assets = pickedFile.assets;
-    if (!assets) return;
+    if (!assets) {
+      setLoading(false);
+      return;
+    }
 
     const file = assets[0];
     const formData = new FormData();
@@ -67,11 +71,14 @@ const SendDocument = () => {
     });
 
     if (response.status == 200) {
-      router.navigate('ideas');
+      setStatus('success');
+      setTimeout(() => {
+        router.navigate('ideas');
+      }, 2000);
     } else {
-      Alert.alert('Erro ao enviar arquivo', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
+      setStatus('error');
     }
-    setIsLoading(false);
+    setLoading(false);
   };
 
   const downloadAndShareFile = async () => {
@@ -96,6 +103,9 @@ const SendDocument = () => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
+
+      <Loader visible={loading} errorMessage='Erro ao enviar documento' successMessage='Documento enviado com sucesso!' status={status} />
+
       <ScrollView style={styles.background}>
         <View style={styles.card}>
           <CustomText style={styles.title}>Enviar Documento</CustomText>
@@ -104,7 +114,7 @@ const SendDocument = () => {
             <CustomButton title='Baixar modelo' width={150} type='Secondary' handlePress={async () => downloadAndShareFile()} />
           </View>
           <View style={styles.buttonArea}>
-            <CustomButton title='Enviar documento' type='Primary' isLoading={isLoading} handlePress={async () => uploadDocument()} />
+            <CustomButton title='Enviar documento' type='Primary' isLoading={loading} handlePress={async () => uploadDocument()} />
           </View>
 
           <CustomText style={styles.subTitle}>Importante!</CustomText>

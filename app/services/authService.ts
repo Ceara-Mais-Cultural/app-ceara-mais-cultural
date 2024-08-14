@@ -1,7 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from './api';
 
-
 const AuthService = {
   login: async (formData: any) => {
     return await api.post('/login/', formData);
@@ -17,9 +16,9 @@ const AuthService = {
   },
 
   getPermissionLevel: (user: any) => {
-    if (user?.is_superuser) {
+    if (user.is_superuser) {
       return 'Comissão';
-    } else if (user?.is_staff) {
+    } else if (user.is_staff) {
       return 'Mobilizador';
     } else {
       return 'Agente Cultural';
@@ -48,7 +47,11 @@ const AuthService = {
   },
 
   getUserData: async () => {
-    return await AsyncStorage.getItem('userData');
+    try {
+      return await AsyncStorage.getItem('userData');
+    } catch (e) {
+      console.error('Erro ao recuperar dados do usuário')
+    }
   },
 
   validateCpf: (cpf: any) => {
@@ -78,7 +81,7 @@ const AuthService = {
     return cpf.charAt(9) == primeiroDigito && cpf.charAt(10) == segundoDigito;
   },
 
- validateCnpj: (cnpj: any) => {
+  validateCnpj: (cnpj: any) => {
     cnpj = cnpj.replace(/\D/g, '');
 
     // Verifica se o CNPJ tem 14 dígitos
@@ -108,7 +111,7 @@ const AuthService = {
 
     // Verifica se os dígitos calculados correspondem aos dígitos informados
     return cnpj.charAt(12) == primeiroDigito && cnpj.charAt(13) == segundoDigito;
-  }
+  },
 };
 
 export default AuthService;

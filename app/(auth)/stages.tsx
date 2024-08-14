@@ -1,24 +1,29 @@
 import { StyleSheet, TouchableOpacity, View, Image } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, icons } from '@/constants';
 import CustomButton from '@/components/CustomButton';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import AuthService from '../services/authService';
 import CustomText from '@/components/CustomText';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Stages = () => {
   const [cards, setCards] = useState([{ text: 'Submissão de ideias' }]);
 
   useEffect(() => {
-    AuthService.getUserData().then((userData: any) => {
-      const user = JSON.parse(userData);
-      const role = AuthService.getPermissionLevel(user);
-      if (role === 'Comissão') {
-        setCards([]);
-        setCards([{ text: 'Curadoria de ideias' }]);
+    const fetchData = async () => {
+      const storedUserData = await AsyncStorage.getItem('userData');
+      if (storedUserData) {
+        const user = JSON.parse(storedUserData);
+        const role = AuthService.getPermissionLevel(user);
+        if (role === 'Comissão') {
+          setCards([{ text: 'Curadoria de ideias' }]);
+        }
       }
-    })
+    };
+
+    fetchData();
   }, []);
 
   const logout = () => {
