@@ -83,18 +83,9 @@ const TabsLayout = () => {
         }}
       >
         <Tabs.Screen
-          name='profile'
-          options={{
-            title: 'Profile',
-            headerShown: false,
-            tabBarIcon: ({ color, focused }) => <TabIcon icon={icons.profile} color={color} name='Perfil' focused={focused} />,
-          }}
-        />
-
-        <Tabs.Screen
           name='ideas'
           options={{
-            title: 'Idéias',
+            title: 'Ideias',
             headerShown: false,
             tabBarIcon: ({ color, focused }) => <TabIcon icon={icons.home} color={color} name='Ideias' focused={focused} />,
           }}
@@ -126,7 +117,7 @@ const TabsLayout = () => {
             options={{
               title: 'Create',
               headerShown: false,
-              tabBarIcon: ({ color, focused }) => <TabIcon icon={icons.plus} color={color} name='Novo' focused={focused} />,
+              tabBarIcon: ({ color, focused }) => <TabIcon icon={icons.plus} color={color} name='Nova Ideia' focused={focused} />,
             }}
           />
         ) : (
@@ -139,6 +130,15 @@ const TabsLayout = () => {
             }}
           />
         )}
+
+        <Tabs.Screen
+          name='profile'
+          options={{
+            title: 'Profile',
+            headerShown: false,
+            tabBarIcon: ({ color, focused }) => <TabIcon icon={icons.profile} color={color} name='Perfil' focused={focused} />,
+          }}
+        />
 
         <Tabs.Screen name='view-idea' options={{ headerShown: false, tabBarButton: () => null }} />
         <Tabs.Screen name='pre-register' options={{ headerShown: false, tabBarButton: () => null }} />

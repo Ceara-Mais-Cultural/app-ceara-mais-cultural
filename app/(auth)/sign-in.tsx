@@ -57,8 +57,8 @@ const SignIn = () => {
         <View style={styles.card}>
           <CustomText style={styles.doLoginText}>Faça seu login</CustomText>
 
-          <FormField title='E-mail' value={form.email} keyboardType='email-address' handleChangeText={(e: any) => setForm({ ...form, email: e })} />
-          <FormField title='Senha' value={form.senha} keyboardType='password' handleChangeText={(e: any) => setForm({ ...form, senha: e })} />
+          <FormField title='E-mail' value={form.email} inputMode='email' handleChangeText={(e: any) => setForm({ ...form, email: e })} />
+          <FormField title='Senha' value={form.senha} inputMode='text' handleChangeText={(e: any) => setForm({ ...form, senha: e })} />
 
           <View style={styles.buttonArea}>
             <CustomButton title='Entrar' type='Primary' handlePress={submit} isLoading={isLoading} disabled={form.email == '' || form.senha == '' || isLoading} />

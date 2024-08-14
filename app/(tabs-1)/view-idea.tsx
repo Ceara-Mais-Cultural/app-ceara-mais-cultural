@@ -11,6 +11,7 @@ import CustomButton from '@/components/CustomButton';
 import PostDataService from '../services/postDataService';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import Loader from '@/components/Loader';
 
 const ViewIdea = () => {
   const { idea } = useLocalSearchParams();
@@ -19,6 +20,8 @@ const ViewIdea = () => {
   const [parsedIdea, setParsedIdea] = useState<any>(idea);
   const [isModalVisible, setIsModalVisible] = useState<any>(idea);
   const [action, setAction] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState(null as any);
 
   useFocusEffect(
     useCallback(() => {
@@ -59,7 +62,9 @@ const ViewIdea = () => {
 
   const closeModal = (modalAction: boolean) => {
     setIsModalVisible(false);
+    setStatus(null);
     if (modalAction) {
+      setLoading(true);
       const idIdea = parsedIdea.id;
       const idUser = user.id;
       const body = {
@@ -69,17 +74,25 @@ const ViewIdea = () => {
       };
       PostDataService.voteIdea(idIdea, body)
         .then((res) => {
-          Alert.prompt(res.data);
-          router.replace('ideas');
+          console.log(res.status);
+          setStatus('success');
+          setTimeout(() => {
+            router.replace('ideas');
+          }, 2000);
         })
-        .catch(() => {
-          Alert.alert('Erro ao registrar voto', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
+        .catch((error) => {
+          setStatus('error');
+        })
+        .finally(() => {
+          setLoading(false);
         });
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
+      <Loader visible={loading} errorMessage='Erro ao registrar voto' successMessage='Voto salvo com sucesso!' status={status} />
+
       <View style={styles.header}>
         <Pressable onPress={() => router.navigate('/ideas')}>
           <Image style={styles.arrowBack} source={icons.arrowBack} resizeMode='contain' tintColor={colors.white} />
@@ -108,7 +121,7 @@ const ViewIdea = () => {
           <CustomText style={styles.title}>{parsedIdea?.title}</CustomText>
           {/* Imagem */}
           <View style={{ height: 200, width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', marginVertical: 10 }}>
-            <Image source={{ uri: parsedIdea?.image?.replace('http', 'https') }}  style={styles.image} resizeMode='contain' />
+            <Image source={{ uri: parsedIdea?.image?.replace('http', 'https') }} style={styles.image} resizeMode='contain' />
           </View>
 
           {/* Detalhes do Projeto */}
@@ -207,26 +220,20 @@ const ViewIdea = () => {
             )}
           </View>
 
-          {parsedIdea?.status !== 'waiting' ? (
-            <>
-              {(parsedIdea?.status == 'pending' && role == 'Comissão' && (
-                <View style={styles.evaluationArea}>
-                  <CustomText style={styles.evaluationText}>Avaliação</CustomText>
+          {(parsedIdea?.status == 'pending' && role == 'Comissão' && (
+            <View style={styles.evaluationArea}>
+              <CustomText style={styles.evaluationText}>Avaliação</CustomText>
 
-                  <CustomButton title='Aprovar' type='Primary' width={200} height={50} style={{ marginHorizontal: 'auto' }} handlePress={() => openModal(true)} />
-                  <CustomButton title='Recusar' type='Secondary' width={200} height={50} style={{ marginHorizontal: 'auto' }} handlePress={() => openModal(false)} />
-                </View>
-              )) ||
-                (role == 'Comissão' && (
-                  <View style={styles.evaluationArea}>
-                    <CustomText style={styles.evaluationText}>Avaliação</CustomText>
-                    <CustomText>Essa ideia já foi votada e {parsedIdea.status == 'approved' ? 'aprovada' : 'recusada'}.</CustomText>
-                  </View>
-                ))}
-            </>
-          ) : (
-            <></>
-          )}
+              <CustomButton title='Aprovar' type='Primary' width={200} height={50} style={{ marginHorizontal: 'auto' }} handlePress={() => openModal(true)} />
+              <CustomButton title='Recusar' type='Secondary' width={200} height={50} style={{ marginHorizontal: 'auto' }} handlePress={() => openModal(false)} />
+            </View>
+          )) ||
+            (role == 'Comissão' && (
+              <View style={styles.evaluationArea}>
+                <CustomText style={styles.evaluationText}>Avaliação</CustomText>
+                <CustomText>Você já {parsedIdea.status == 'approved' ? 'aprovou' : 'recusou'} essa ideia</CustomText>
+              </View>
+            ))}
         </View>
       </ScrollView>
     </SafeAreaView>

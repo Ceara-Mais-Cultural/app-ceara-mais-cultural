@@ -30,6 +30,7 @@ const SendDocument = () => {
   );
 
   const uploadDocument = async () => {
+    setStatus(null);
     setLoading(true);
     const pickedFile = await DocumentPicker.getDocumentAsync({ type: 'application/pdf' });
     const assets = pickedFile.assets;

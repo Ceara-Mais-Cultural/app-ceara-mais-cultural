@@ -15,6 +15,7 @@ import { colors, icons } from '@/constants';
 import AccordionItem from '@/components/AccordionItem';
 import Loader from '@/components/Loader';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import IdeaCard from '@/components/IdeaCard';
 
 const Ideas = () => {
   const initialFilter = {
@@ -36,14 +37,13 @@ const Ideas = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState(null as any);
+  const filteredIdeas = ideas.filter((idea: any) => idea.title.toLowerCase().includes(searchText.toLowerCase()));
 
   useFocusEffect(
     useCallback(() => {
       loadScreen();
     }, [])
   );
-
-  const filteredIdeas = ideas.filter((idea: any) => idea.title.toLowerCase().includes(searchText.toLowerCase()));
 
   const loadScreen = async () => {
     setFilter(initialFilter);
@@ -52,7 +52,7 @@ const Ideas = () => {
     if (storedUserData) {
       const user = JSON.parse(storedUserData);
       const role = AuthService.getPermissionLevel(user);
-      setUser(user)
+      setUser(user);
       setRole(role);
       getMunicipios();
       getMunicipioBairros(user.city);
@@ -84,31 +84,6 @@ const Ideas = () => {
       () => {
         setStatus('error');
       }
-    );
-  };
-
-  const _IdeaCard = ({ idea, onPress }: any) => {
-    if (!idea || typeof idea !== 'object' || Object.keys(idea).length === 0) {
-      return null;
-    }
-
-    return (
-      <TouchableOpacity style={styles.ideaCard} onPress={onPress}>
-        <View style={[styles.statusBall, idea?.status === 'approved' ? { backgroundColor: colors.confirm } : idea?.status === 'pending' ? { backgroundColor: colors.pending } : { backgroundColor: colors.danger }]} />
-        <View style={[styles.cardContent]}>
-          <CustomText style={{ fontSize: 15 }}>{idea?.title}</CustomText>
-          <CustomText style={{ fontSize: 12 }}>
-            {idea?.category_name} - {idea?.city_name}
-          </CustomText>
-          <CustomText style={{ fontSize: 12 }}>Submetido em: {idea?.created_at}</CustomText>
-        </View>
-
-        <View style={{ marginRight: 15, width: 15, top: 5 }}>{idea?.status == 'waiting' && <CustomText style={{ color: colors.danger, fontSize: 24, marginTop: 7 }}>*</CustomText>}</View>
-
-        <View>
-          <Image style={{ width: 30, height: 30 }} source={icons.chevronForward} resizeMode='contain' tintColor={colors.primary} />
-        </View>
-      </TouchableOpacity>
     );
   };
 
@@ -230,7 +205,7 @@ const Ideas = () => {
               {(!loading && filteredIdeas.length > 0 && (
                 <View style={styles.cardsArea}>
                   {filteredIdeas.map((idea: any) => (
-                    <_IdeaCard key={idea.id} idea={idea} onPress={() => handleViewCardNav(idea)} />
+                    <IdeaCard key={idea.id} idea={idea} onPress={() => handleViewCardNav(idea)} />
                   ))}
                 </View>
               )) || <Text style={{ marginHorizontal: 'auto' }}>Nenhum item encontrado!</Text>}
@@ -246,7 +221,7 @@ const Ideas = () => {
                   <View style={styles.cardsArea}>
                     {filteredIdeas.map((idea: any) => {
                       if (idea.status !== 'approved') {
-                        return <_IdeaCard key={idea.id} idea={idea} onPress={() => handleViewCardNav(idea)} />;
+                        return <IdeaCard key={idea.id} idea={idea} onPress={() => handleViewCardNav(idea)} />;
                       }
                     })}
                   </View>
@@ -260,7 +235,7 @@ const Ideas = () => {
                   <View style={styles.cardsArea}>
                     {filteredIdeas.map((idea: any) => {
                       if (idea.status === 'approved') {
-                        return <_IdeaCard key={idea.id} idea={idea} onPress={() => handleViewCardNav(idea)} />;
+                        return <IdeaCard key={idea.id} idea={idea} onPress={() => handleViewCardNav(idea)} />;
                       }
                     })}
                   </View>
@@ -280,7 +255,7 @@ const Ideas = () => {
                     <View style={styles.cardsArea}>
                       {filteredIdeas.map((idea: any) => {
                         if (idea.status !== 'approved' && idea.status !== 'waiting' && idea.city_name === city.name) {
-                          return <_IdeaCard key={idea.id} idea={idea} onPress={() => handleViewCardNav(idea)} />;
+                          return <IdeaCard key={idea.id} idea={idea} onPress={() => handleViewCardNav(idea)} />;
                         }
                       })}
                     </View>
@@ -296,7 +271,7 @@ const Ideas = () => {
                     <View style={styles.cardsArea}>
                       {filteredIdeas.map((idea: any) => {
                         if (idea.status === 'approved' && idea.city_name === city.name) {
-                          return <_IdeaCard key={idea.id} idea={idea} onPress={() => handleViewCardNav(idea)} />;
+                          return <IdeaCard key={idea.id} idea={idea} onPress={() => handleViewCardNav(idea)} />;
                         }
                       })}
                     </View>
@@ -375,31 +350,6 @@ const styles = StyleSheet.create({
 
   cardsArea: {
     gap: 10,
-  },
-
-  ideaCard: {
-    backgroundColor: colors.white,
-    borderRadius: 15,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.stroke,
-  },
-
-  statusBall: {
-    borderRadius: 50,
-    width: 15,
-    height: 15,
-    marginRight: 15,
-  },
-
-  cardContent: {
-    maxWidth: 210,
-    width: '100%',
-    marginRight: 15,
   },
 
   // MODAL

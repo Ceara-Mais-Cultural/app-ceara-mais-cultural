@@ -107,7 +107,7 @@ const SignUp = () => {
             <>
               <CustomText style={styles.doLoginText}>Nos fale um pouco sobre você</CustomText>
 
-              <FormField title='Nome' required='true' value={form.nome} handleChangeText={(e: any) => setForm({ ...form, nome: e })} />
+              <FormField title='Primeiro e último nome' required='true' value={form.nome} handleChangeText={(e: any) => setForm({ ...form, nome: e })} />
               <FormField title='CPF/CNPJ' keyboardType='numeric' required='true' value={form.cpfCnpj} handleChangeText={(e: any) => handleCpfCnpjChange(e)} />
               <FormSelectField title='Município' required='true' selected={form.municipio} array={municipios} label='name' value='id' placeholder='Selecione' handleSelectChange={(idMunicipio: number) => { selectMunicipio(idMunicipio); }} />
               <FormSelectField title='Bairro' disabled={bairros.length == 0} required='true' selected={form.bairro} array={bairros} label='name' value='id' placeholder='Selecione' handleSelectChange={(e: any) => setForm({ ...form, bairro: e })} />
