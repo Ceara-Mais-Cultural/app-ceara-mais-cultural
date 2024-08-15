@@ -2,11 +2,15 @@
   "expo": {
     "name": "Ceará Mais Cultural",
     "slug": "ceara-mais-cultural",
-    "version": "0.6",
-    "orientation": "portrait",
+    "version": "1.0.0",
     "icon": "./assets/images/icon.png",
     "scheme": "ceara-mais-cultural",
     "userInterfaceStyle": "automatic",
+    "extra": {
+      "eas": {
+        "projectId": "2e699951-ee3d-4957-ac89-1c96563b2a76"
+      }
+    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -14,9 +18,6 @@
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
-    },
-    "ios": {
-      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
@@ -36,14 +37,6 @@
     ],
     "experiments": {
       "typedRoutes": true
-    },
-    "extra": {
-      "router": {
-        "origin": false
-      },
-      "eas": {
-        "projectId": "2e699951-ee3d-4957-ac89-1c96563b2a76"
-      }
     },
     "owner": "luisgaboardi"
   }
