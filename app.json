@@ -24,7 +24,9 @@
         "foregroundImage": "./assets/images/mobile-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.luisgglins.cearamaiscultural"
+      "package": "com.luisgglins.cearamaiscultural",
+      "versionCode": 30
+      
     },
     "web": {
       "bundler": "metro",
