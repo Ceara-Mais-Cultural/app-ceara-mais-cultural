@@ -9,7 +9,7 @@ type AccordionItemPros = PropsWithChildren<{
 }>;
 
 function AccordionItem({ children, title, isExpanded }: AccordionItemPros): JSX.Element {
-    const [expanded, setExpanded] = useState(isExpanded ? true : false);
+    const [expanded, setExpanded] = useState(isExpanded);
 
     function toggleItem() {
         setExpanded(!expanded);

@@ -14,7 +14,7 @@ import Loader from '@/components/Loader';
 
 const SendDocument = () => {
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState(null as any);
+  const [status, setStatus] = useState([] as any);
   const { idea } = useLocalSearchParams();
   const [parsedIdea, setParsedIdea] = useState<any>(null);
   const [authToken, setAuthToken] = useState<any>(null);
@@ -30,7 +30,7 @@ const SendDocument = () => {
   );
 
   const uploadDocument = async () => {
-    setStatus(null);
+    setStatus([]);
     setLoading(true);
     const pickedFile = await DocumentPicker.getDocumentAsync({ type: 'application/pdf' });
     const assets = pickedFile.assets;
@@ -72,17 +72,18 @@ const SendDocument = () => {
     });
 
     if (response.status == 200) {
-      setStatus('success');
+      setStatus(['success', 'Documento enviado com sucesso!']);
       setTimeout(() => {
-        router.navigate('ideas');
+        router.navigate('/ideas');
       }, 2000);
     } else {
-      setStatus('error');
+      setStatus(['error', 'Erro ao enviar documento. Tente novamente mais tarde']);
     }
     setLoading(false);
   };
 
   const downloadAndShareFile = async () => {
+    setStatus([]);
     try {
       // URL do arquivo que você deseja baixar
       const fileUrl = 'https://api.arya.ai/images/test.pdf';
@@ -95,17 +96,16 @@ const SendDocument = () => {
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri);
       } else {
-        Alert.alert('Erro ao baixar arquivo', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
+        setStatus(['error', 'Erro ao compartilhar documento. Tente novamente mais tarde']);
       }
     } catch (error) {
-      Alert.alert('Erro ao baixar arquivo', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
+      setStatus(['error', 'Erro ao baixar documento. Tente novamente mais tarde']);
     }
   };
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-
-      <Loader visible={loading} errorMessage='Erro ao enviar documento' successMessage='Documento enviado com sucesso!' status={status} />
+      <Loader visible={loading} message={status[1]} status={status[0]} />
 
       <ScrollView style={styles.background}>
         <View style={styles.card}>
@@ -115,7 +115,7 @@ const SendDocument = () => {
             <CustomButton title='Baixar modelo' width={150} type='Secondary' handlePress={async () => downloadAndShareFile()} />
           </View>
           <View style={styles.buttonArea}>
-            <CustomButton title='Enviar documento' type='Primary' isLoading={loading} handlePress={async () => uploadDocument()} />
+            <CustomButton title='Enviar documento' type='Primary' handlePress={async () => uploadDocument()} />
           </View>
 
           <CustomText style={styles.subTitle}>Importante!</CustomText>
@@ -126,7 +126,7 @@ const SendDocument = () => {
               type='Secondary'
               width={150}
               handlePress={() => {
-                router.push('ideas');
+                router.push('/ideas');
               }}
             />
           </View>

@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, View, Image, Alert } from 'react-native';
+import { ScrollView, StyleSheet, View, Image, Linking } from 'react-native';
 import React, { useState } from 'react';
 import { colors, images } from '@/constants';
 import FormField from '@/components/FormField';
@@ -17,11 +17,11 @@ const SignIn = () => {
     senha: '',
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [status, setStatus] = useState(null as any);
-  
+  const [status, setStatus] = useState([] as any);
+
   const submit = () => {
     setIsLoading(true);
-    setStatus(null);
+    setStatus([]);
     const body = {
       email: form.email,
       password: form.senha,
@@ -29,7 +29,7 @@ const SignIn = () => {
     AuthService.login(body)
       .then(async (res) => {
         const response = res.data;
-        setStatus('success');
+        setStatus(['success', 'Bem vindo(a)!']);
         const jsonValue = JSON.stringify(response.user);
         await AsyncStorage.setItem('userData', jsonValue);
         await AsyncStorage.setItem('authToken', response.token);
@@ -38,8 +38,9 @@ const SignIn = () => {
           router.push('/stages');
         }, 2000);
       })
-      .catch(() => {
-        setStatus('error');
+      .catch((error) => {
+        if (error?.response?.status == 404) setStatus(['error', 'Email ou senha incorretos. Por favor, tente novamente']);
+        else setStatus(['error', 'Ocorreu um erro no servidor. Tente novamente mais tarde']);
       })
       .finally(() => {
         setIsLoading(false);
@@ -48,7 +49,7 @@ const SignIn = () => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <Loader visible={isLoading} successMessage='Bem-vindo(a)!' errorMessage='Erro ao entrar' status={status} />
+      <Loader visible={isLoading} message={status[1]} status={status[0]} />
       <ScrollView style={styles.background} contentContainerStyle={{ height: '100%' }}>
         <View style={styles.logoArea}>
           <Image style={styles.logo} source={images.logoDark} resizeMode='contain' />
@@ -61,8 +62,9 @@ const SignIn = () => {
           <FormField title='Senha' value={form.senha} inputMode='text' handleChangeText={(e: any) => setForm({ ...form, senha: e })} />
 
           <View style={styles.buttonArea}>
-            <CustomButton title='Entrar' type='Primary' handlePress={submit} isLoading={isLoading} disabled={form.email == '' || form.senha == '' || isLoading} />
-            <CustomButton title='Criar uma conta' type='Link' handlePress={() => router.push('/sign-up')} />
+            <CustomButton title='Esqueci a senha' type='Link' handlePress={() => Linking.openURL('https://ceara-mais-cultural-api.up.railway.app/confirmar-identidade/')}  />
+            <CustomButton title='Entrar' type='Primary' handlePress={submit}  disabled={form.email == '' || form.senha == '' || isLoading} />
+            <CustomButton title='Criar uma conta' type='Secondary' handlePress={() => router.push('/sign-up')} />
           </View>
         </View>
       </ScrollView>
@@ -109,9 +111,12 @@ const styles = StyleSheet.create({
   },
 
   buttonArea: {
-    marginTop: 25,
     marginBottom: 15,
     marginHorizontal: 'auto',
-    rowGap: 35,
+    rowGap: 25,
+  },
+
+  forgot: {
+    backgroundColor: '#FFF',
   },
 });

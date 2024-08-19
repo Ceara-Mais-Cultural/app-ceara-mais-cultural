@@ -36,7 +36,7 @@ const Create = () => {
   const [municipios, setMunicipios] = useState([]);
   const [bairros, setBairros] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState(null as any);
+  const [status, setStatus] = useState([] as any);
   const [authToken, setAuthToken] = useState<any>(null);
 
   useFocusEffect(
@@ -44,10 +44,10 @@ const Create = () => {
       AuthService.getUserData().then((userData: any) => {
         const user = JSON.parse(userData);
         setForm({});
-        setForm({ ...form, municipio: user.city, bairro: user.neighborhood, comunidade: user.community });
+        setForm({ ...form, municipio: user?.city, bairro: user?.neighborhood, comunidade: user?.community });
         setAuthToken(userData.token);
         setUser(user);
-        getMunicipioBairros(user.city);
+        getMunicipioBairros(user?.city);
         const role = AuthService.getPermissionLevel(user);
         if (role === 'Agente Cultural') {
           setIsAdmin(false);
@@ -127,16 +127,16 @@ const Create = () => {
     } as any);
     formData.append('title', form.titulo);
     formData.append('description', form.descricao);
-    formData.append('city', user.city);
-    formData.append('neighborhood', user.neighborhood);
+    formData.append('city', user?.city);
+    formData.append('neighborhood', user?.neighborhood);
     if (!!form.community) {
       formData.append('community', form.community);
     }
     formData.append('location', form.local);
     formData.append('category', form.categoria);
-    formData.append('author', isAdmin ? form.mobilizadorAgente : user.id);
+    formData.append('author', isAdmin ? form.mobilizadorAgente : user?.id);
     if (isAdmin) {
-      formData.append('promoter', user.id);
+      formData.append('promoter', user?.id);
     } else if (!!form.mobilizadorAgente) {
       formData.append('promoter', form.mobilizadorAgente);
     }
@@ -153,9 +153,9 @@ const Create = () => {
 
     if (response.status == 201) {
       const createdIdea = await response.json();
-      router.push({ pathname: 'pre-register', params: { idea: JSON.stringify(createdIdea) } });
+      router.push({ pathname: '/pre-register', params: { idea: JSON.stringify(createdIdea) } });
     } else {
-      setStatus('error');
+      setStatus(['error', 'Erro ao cadastrar ideia']);
     }
     setLoading(false);
   };
@@ -163,7 +163,7 @@ const Create = () => {
   return (
     <SafeAreaView style={styles.container}>
 
-      <Loader visible={loading} errorMessage='Erro ao cadastrar ideia' status={status} />
+      <Loader visible={loading} message={status[1]} status={status[0]} />
 
       <View style={styles.header}>
         <CustomText style={styles.title}>Ideia de Projeto</CustomText>
@@ -203,7 +203,7 @@ const Create = () => {
           )}
 
           <View style={styles.buttonArea}>
-            <CustomButton title='Continuar' type='Primary' disabled={!validateForm()} handlePress={submit} isLoading={loading} />
+            <CustomButton title='Continuar' type='Primary' disabled={!validateForm()} handlePress={submit}  />
           </View>
         </View>
       </ScrollView>

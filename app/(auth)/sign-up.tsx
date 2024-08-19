@@ -29,13 +29,13 @@ const SignUp = () => {
 
   const [municipios, setMunicipios] = useState<any>([]);
   const [bairros, setBairros] = useState<any>([]);
-  const [cpfCnpjError, setCpfCnpjError] = useState<boolean>(false)
+  const [cpfCnpjError, setCpfCnpjError] = useState<boolean>(false);
 
   useFocusEffect(
     useCallback(() => {
       getMunicipios();
     }, [])
-  )
+  );
 
   const getMunicipios = () => {
     GetDataService.getCities().then((res) => {
@@ -54,21 +54,21 @@ const SignUp = () => {
     if (cleanedInput.length <= 11) {
       const formattedCpf = cleanedInput.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
       setForm({ ...form, cpfCnpj: formattedCpf });
-      if (AuthService.validateCpf(formattedCpf)) setCpfCnpjError(false)
+      if (AuthService.validateCpf(formattedCpf)) setCpfCnpjError(false);
       else setCpfCnpjError(true);
     } else {
       const formattedCnpj = cleanedInput.slice(0, 14).replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
       setForm({ ...form, cpfCnpj: formattedCnpj });
-      if (AuthService.validateCnpj(formattedCnpj)) setCpfCnpjError(false)
+      if (AuthService.validateCnpj(formattedCnpj)) setCpfCnpjError(false);
       else setCpfCnpjError(true);
     }
   };
 
   const selectMunicipio = (idMunicipio: number) => {
     if (!idMunicipio) return;
-    setForm({ ...form, municipio: idMunicipio })
+    setForm({ ...form, municipio: idMunicipio });
     getMunicipioBairros(idMunicipio);
-  }
+  };
 
   const submit = () => {
     setIsLoading(true);
@@ -84,13 +84,13 @@ const SignUp = () => {
     };
     AuthService.signUp(body)
       .then((res) => {
-        setStatus('success');
+        setStatus(['success', 'Conta criada com sucesso!']);
         setTimeout(() => {
           router.replace('/sign-in');
-        }, 2000); 
+        }, 2000);
       })
       .catch((error) => {
-        setStatus('error');
+        setStatus(['error', 'Erro ao criar conta']);
       })
       .finally(() => {
         setIsLoading(false);
@@ -99,7 +99,7 @@ const SignUp = () => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <Loader visible={isLoading} successMessage='Conta criada!' errorMessage='Erro ao criar conta' status={status} />
+      <Loader visible={isLoading} message={status[1]} status={status[0]} />
       <ScrollView style={styles.background}>
         <View style={styles.card}>
           <CustomText style={styles.title}>Crie sua conta</CustomText>
@@ -109,7 +109,18 @@ const SignUp = () => {
 
               <FormField title='Primeiro e último nome' required='true' value={form.nome} handleChangeText={(e: any) => setForm({ ...form, nome: e })} />
               <FormField title='CPF/CNPJ' keyboardType='numeric' required='true' value={form.cpfCnpj} handleChangeText={(e: any) => handleCpfCnpjChange(e)} />
-              <FormSelectField title='Município' required='true' selected={form.municipio} array={municipios} label='name' value='id' placeholder='Selecione' handleSelectChange={(idMunicipio: number) => { selectMunicipio(idMunicipio); }} />
+              <FormSelectField
+                title='Município'
+                required='true'
+                selected={form.municipio}
+                array={municipios}
+                label='name'
+                value='id'
+                placeholder='Selecione'
+                handleSelectChange={(idMunicipio: number) => {
+                  selectMunicipio(idMunicipio);
+                }}
+              />
               <FormSelectField title='Bairro' disabled={bairros.length == 0} required='true' selected={form.bairro} array={bairros} label='name' value='id' placeholder='Selecione' handleSelectChange={(e: any) => setForm({ ...form, bairro: e })} />
               <FormField title='Comunidade' value={form.comunidade} handleChangeText={(e: any) => setForm({ ...form, comunidade: e })} />
 
@@ -128,7 +139,7 @@ const SignUp = () => {
                 <FormField title='Confirme a senha' value={form.confirmaSenha} keyboardType='password' handleChangeText={(e: any) => setForm({ ...form, confirmaSenha: e })} />
 
                 <View style={styles.buttonArea}>
-                  <CustomButton title='Criar conta' disabled={!form.email || !form.senha || !form.confirmaSenha || form.senha !== form.confirmaSenha} type='Primary' handlePress={() => submit()} isLoading={isLoading} />
+                  <CustomButton title='Criar conta' disabled={!form.email || !form.senha || !form.confirmaSenha || form.senha !== form.confirmaSenha} type='Primary' handlePress={() => submit()} />
                   <CustomButton title='Já tenho uma conta' type='Link' handlePress={() => router.push('/sign-in')} />
                 </View>
               </>

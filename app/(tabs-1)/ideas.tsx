@@ -36,7 +36,7 @@ const Ideas = () => {
   const [role, setRole] = useState('Agente Cultural');
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState(null as any);
+  const [status, setStatus] = useState([] as any);
   const filteredIdeas = ideas.filter((idea: any) => idea.title.toLowerCase().includes(searchText.toLowerCase()));
 
   useFocusEffect(
@@ -55,9 +55,9 @@ const Ideas = () => {
       setUser(user);
       setRole(role);
       getMunicipios();
-      getMunicipioBairros(user.city);
-      if (role === 'Agente Cultural') getIdeas(user.id);
-      else if (role === 'Mobilizador') getIdeas(user.id, user.city);
+      getMunicipioBairros(user?.city);
+      if (role === 'Agente Cultural') getIdeas(user?.id);
+      else if (role === 'Mobilizador') getIdeas(user?.id, user?.city);
       else getIdeas();
     }
   };
@@ -82,7 +82,7 @@ const Ideas = () => {
         setLoading(false);
       },
       () => {
-        setStatus('error');
+        setStatus(['error', 'Erro ao recuperar ideias. Tente novamente mais tarde']);
       }
     );
   };
@@ -93,7 +93,7 @@ const Ideas = () => {
   };
 
   const openFilter = () => {
-    setFilter({ ...filter, municipio: user.city, bairro: user.neighborhood, comunidade: user.comunity });
+    setFilter({ ...filter, municipio: user?.city, bairro: user?.neighborhood, comunidade: user?.comunity });
     getMunicipios();
     getCategories();
     setIsModalVisible(true);
@@ -150,7 +150,8 @@ const Ideas = () => {
 
   return (
     <SafeAreaView style={{ flex: 1, paddingBottom: 80 }}>
-      <Loader visible={loading} errorMessage='Erro ao carregar ideias' successMessage='' status={status} />
+      
+      <Loader visible={loading} message={status[1]} status={status[0]} />
 
       {/* MODAL */}
       <Modal animationType='fade' transparent={true} visible={isModalVisible} onRequestClose={() => closeFilter(false)}>
@@ -246,11 +247,11 @@ const Ideas = () => {
         )}
 
         {role === 'Comissão' &&
-          municipios.map((city: any) => (
+          municipios.map((city: any, idx: number) => (
             <View key={city.id} style={styles.content}>
               <CustomText style={styles.cardTitle}>{city.name}</CustomText>
               <View style={styles.subCard}>
-                <AccordionItem title='Ideias Submetidas' isExpanded={true}>
+                <AccordionItem title={`Ideias Submetidas (${filteredIdeas.filter((idea: any) => idea.status !== 'approved' && idea.status !== 'waiting' && idea.city_name === city.name).length})`} isExpanded={idx === 0}>
                   {(!loading && filteredIdeas.length > 0 && (
                     <View style={styles.cardsArea}>
                       {filteredIdeas.map((idea: any) => {
@@ -266,7 +267,7 @@ const Ideas = () => {
               <View style={[{ borderWidth: 0.5, borderColor: colors.text, marginTop: 10, marginBottom: 10 }]}></View>
 
               <View style={styles.subCard}>
-                <AccordionItem title={'Ideias Aprovadas'}>
+                <AccordionItem title={`Ideias Aprovadas (${filteredIdeas.filter((idea: any) => idea.status === 'approved' && idea.city_name === city.name).length})`} isExpanded={false}>
                   {(!loading && filteredIdeas.length > 0 && (
                     <View style={styles.cardsArea}>
                       {filteredIdeas.map((idea: any) => {

@@ -18,7 +18,7 @@ const Reports = () => {
   const [ideas, setIdeas] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState(null as any);
+  const [status, setStatus] = useState([] as any);
 
   useFocusEffect(
     useCallback(() => {
@@ -49,7 +49,7 @@ const Reports = () => {
 
       setIdeas(formattedIdeas);
     } catch (error) {
-      setStatus('error');
+      setStatus(['error', 'Erro ao recuperar ideias. Tente novamente mais tarde']);
     } finally {
       setLoading(false);
     }
@@ -105,7 +105,7 @@ const Reports = () => {
 
       if (!(await Sharing.isAvailableAsync())) {
         setLoading(true);
-        setStatus('error');
+        setStatus(['error', 'Erro ao exportar relatório. Tente novamente mais tarde']);
         setTimeout(() => {
           setLoading(false);
         }, 2000);
@@ -118,7 +118,7 @@ const Reports = () => {
       });
     } catch (error) {
       setLoading(true);
-      setStatus('error');
+      setStatus(['error', 'Erro ao exportar relatório. Tente novamente mais tarde']);
       setTimeout(() => {
         setLoading(false);
       }, 2000);
@@ -128,11 +128,11 @@ const Reports = () => {
   return (
     <SafeAreaView style={styles.container}>
       
-      <Loader visible={loading} errorMessage='Erro ao carregar relatório' status={status} />
+      <Loader visible={loading} message={status[1]} status={status[0]} />
 
       <View style={styles.header}>
         <CustomText style={styles.title}>Relatório</CustomText>
-        <View style={styles.buttonArea}>{isAdmin && <CustomButton title='Exportar Excel' type='Primary' width={160} height={50} isLoading={loading} handlePress={async () => exportDataToExcel(ideas)} />}</View>
+        <View style={styles.buttonArea}>{isAdmin && <CustomButton title='Exportar Excel' type='Primary' width={160} height={50}  handlePress={async () => exportDataToExcel(ideas)} />}</View>
       </View>
       <ScrollView style={styles.content}>
         <DynamicTable data={ideas} header={tableHeader} />

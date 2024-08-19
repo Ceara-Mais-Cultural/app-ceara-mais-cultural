@@ -16,9 +16,9 @@ const AuthService = {
   },
 
   getPermissionLevel: (user: any) => {
-    if (user.is_superuser) {
+    if (user?.is_superuser) {
       return 'Comissão';
-    } else if (user.is_staff) {
+    } else if (user?.is_staff) {
       return 'Mobilizador';
     } else {
       return 'Agente Cultural';
@@ -29,7 +29,7 @@ const AuthService = {
     const userData = await AsyncStorage.getItem('userData');
     const user = JSON.parse(userData as any);
 
-    return user.id;
+    return user?.id;
   },
 
   getAuthToken: async () => {

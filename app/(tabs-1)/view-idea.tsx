@@ -36,6 +36,7 @@ const ViewIdea = () => {
   );
 
   const downloadAndShareFile = async () => {
+    setStatus([]);
     try {
       // URL do arquivo que você deseja baixar
       const fileUrl = parsedIdea.file.replace('http', 'https');
@@ -48,10 +49,10 @@ const ViewIdea = () => {
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri);
       } else {
-        Alert.alert('Erro ao baixar arquivo', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
+        setStatus(['error', 'Erro ao compartilhar documento. Tente novamente mais tarde']);
       }
     } catch (error) {
-      Alert.alert('Erro ao baixar arquivo', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
+      setStatus(['error', 'Erro ao baixar documento. Tente novamente mais tarde']);
     }
   };
 
@@ -62,26 +63,25 @@ const ViewIdea = () => {
 
   const closeModal = (modalAction: boolean) => {
     setIsModalVisible(false);
-    setStatus(null);
+    setStatus([]);
     if (modalAction) {
       setLoading(true);
-      const idIdea = parsedIdea.id;
-      const idUser = user.id;
+      const idIdea = parsedIdea?.id;
+      const idUser = user?.id;
       const body = {
         project: idIdea,
         user: idUser,
         vote: action ? 'approved' : 'declined',
       };
       PostDataService.voteIdea(idIdea, body)
-        .then((res) => {
-          console.log(res.status);
-          setStatus('success');
+        .then(() => {
+          setStatus(['success', 'Voto salvo com sucesso!']);
           setTimeout(() => {
-            router.replace('ideas');
+            router.replace('/ideas');
           }, 2000);
         })
-        .catch((error) => {
-          setStatus('error');
+        .catch(() => {
+          setStatus(['error', 'Erro ao salvar voto. Tente novamente mais tarde']);
         })
         .finally(() => {
           setLoading(false);
@@ -91,7 +91,7 @@ const ViewIdea = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Loader visible={loading} errorMessage='Erro ao registrar voto' successMessage='Voto salvo com sucesso!' status={status} />
+      <Loader visible={loading} message={status[1]} status={status[0]} />
 
       <View style={styles.header}>
         <Pressable onPress={() => router.navigate('/ideas')}>

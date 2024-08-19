@@ -1,4 +1,4 @@
-import { ScrollView, View, StyleSheet, Image, Alert } from 'react-native';
+import { ScrollView, View, StyleSheet, Image } from 'react-native';
 import React, { useCallback, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, images } from '@/constants';
@@ -7,9 +7,11 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import CustomText from '@/components/CustomText';
+import Loader from '@/components/Loader';
 
 const PreRegister = () => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState([] as any);
   const { idea } = useLocalSearchParams();
   const [parsedIdea, setParsedIdea] = useState<any>(null);
 
@@ -21,13 +23,13 @@ const PreRegister = () => {
   );
 
   const handleClick = async () => {
-    setIsLoading(true);
     await downloadAndShareFile();
-    setIsLoading(false);
-    router.push({ pathname: 'send-document', params: { idea: JSON.stringify(parsedIdea) } });
+    router.push({ pathname: '/send-document', params: { idea: JSON.stringify(parsedIdea) } });
   };
 
   const downloadAndShareFile = async () => {
+    setLoading(true);
+    setStatus([]);
     try {
       // URL do arquivo que você deseja baixar
       const fileUrl = 'https://api.arya.ai/images/test.pdf';
@@ -40,22 +42,24 @@ const PreRegister = () => {
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri);
       } else {
-        Alert.alert('Erro ao baixar arquivo', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
+        setStatus(['error', 'Erro ao compartilhar documento. Tente novamente mais tarde']);
       }
     } catch (error) {
-      Alert.alert('Erro ao baixar arquivo', 'Desculpe pelo transtorno. Tente novamente mais tarde.');
+      setStatus(['error', 'Erro ao baixar documento. Tente novamente mais tarde']);
     }
   };
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
+      <Loader visible={loading} message={status[1]} status={status[0]} />
+
       <ScrollView style={styles.background}>
         <View style={styles.card}>
           <CustomText style={styles.title}>Projeto Pré-Cadastrado</CustomText>
           <Image source={images.success} style={styles.image} />
           <CustomText style={styles.text}>Faça o download do termo de abertura do projeto com o botão abaixo para detalhar sua ideia com o nosso modelo.</CustomText>
           <View style={styles.buttonArea}>
-            <CustomButton title='Baixar modelo de projeto' type='Primary' isLoading={isLoading} handlePress={async () => handleClick()} />
+            <CustomButton title='Baixar modelo de projeto' type='Primary' handlePress={async () => handleClick()} />
           </View>
         </View>
       </ScrollView>

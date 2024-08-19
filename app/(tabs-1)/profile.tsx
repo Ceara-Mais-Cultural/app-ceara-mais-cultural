@@ -26,7 +26,7 @@ const Profile = () => {
       AsyncStorage.getItem('userData').then((userData: any) => {
         const user = JSON.parse(userData)
         user.role = AuthService.getPermissionLevel(user);
-        user.cpf = formatHiddenCpfCnpj(user.cpf);
+        user.cpf = formatHiddenCpfCnpj(user?.cpf);
         setUser(user);
       });
     }, [])
@@ -48,13 +48,13 @@ const Profile = () => {
         <View style={styles.card}>
           <CustomText style={styles.title}>Minha Conta</CustomText>
 
-          <FormField title='Nome' disabled='true' value={user.full_name} />
-          <FormField title='CPF/CNPJ' disabled='true' value={user.cpf} />
-          <FormField title='E-mail' disabled='true' value={user.email} />
-          <FormField title='Município' disabled='true' value={user.city_name} />
-          <FormField title='Bairro' disabled='true' value={user.neighborhood_name} />
-          <FormField title='Comunidade' disabled='true' value={user.community || '-'} />
-          <FormField title='Papel' disabled='true' value={user.role} />
+          <FormField title='Nome' disabled='true' value={user?.full_name} />
+          <FormField title='CPF/CNPJ' disabled='true' value={user?.cpf} />
+          <FormField title='E-mail' disabled='true' value={user?.email} />
+          <FormField title='Município' disabled='true' value={user?.city_name} />
+          <FormField title='Bairro' disabled='true' value={user?.neighborhood_name} />
+          <FormField title='Comunidade' disabled='true' value={user?.community || '-'} />
+          <FormField title='Papel' disabled='true' value={user?.role} />
 
           <View style={styles.buttonArea}>
             <CustomButton title='Sair' type='Secondary' handlePress={() => router.replace('/sign-in')} />

@@ -4,13 +4,11 @@ import { Ionicons } from '@expo/vector-icons';
 
 interface LoaderProps {
   visible: boolean;
-  loadingMessage?: string;
-  successMessage?: string;
-  errorMessage?: string;
+  message?: string;
   status: 'loading' | 'success' | 'error';
 }
 
-const Loader: React.FC<LoaderProps> = ({ visible, loadingMessage = "Carregando...", successMessage = null, errorMessage = "Ocorreu um erro", status }) => {
+const Loader: React.FC<LoaderProps> = ({ visible, message = "Carregando...", status }) => {
   const [showModal, setShowModal] = useState(visible);
 
   useEffect(() => {
@@ -27,21 +25,21 @@ const Loader: React.FC<LoaderProps> = ({ visible, loadingMessage = "Carregando..
         return (
           <>
             <Ionicons name="checkmark-circle" size={64} color="green" />
-            <Text style={styles.message}>{successMessage}</Text>
+            <Text style={styles.message}>{message}</Text>
           </>
         );
       case 'error':
         return (
           <>
             <Ionicons name="close-circle" size={64} color="red" />
-            <Text style={styles.message}>{errorMessage}</Text>
+            <Text style={styles.message}>{message}</Text>
           </>
         );
       default:
         return (
           <>
             <ActivityIndicator size="large" color="#0000ff" />
-            <Text style={styles.message}>{loadingMessage}</Text>
+            <Text style={styles.message}>{message}</Text>
           </>
         );
     }

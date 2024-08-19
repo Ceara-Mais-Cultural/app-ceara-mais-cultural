@@ -1,9 +1,9 @@
-import { StyleSheet, TouchableOpacity, View, Image } from 'react-native';
-import React, { useCallback, useEffect, useState } from 'react';
+import { StyleSheet, View, Image, Pressable } from 'react-native';
+import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, icons } from '@/constants';
 import CustomButton from '@/components/CustomButton';
-import { router, useFocusEffect } from 'expo-router';
+import { router } from 'expo-router';
 import AuthService from '../services/authService';
 import CustomText from '@/components/CustomText';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -57,12 +57,12 @@ const Stages = () => {
         </View>
         <View style={styles.content}>
           {cards.map((option: any, index: number) => (
-            <TouchableOpacity key={index} style={styles.card} onPress={() => handleNavigation(index + 1)}>
+            <Pressable key={index} style={styles.card} onPress={() => handleNavigation(index + 1)}>
               <CustomText style={styles.cardText} key={index}>
                 {index + 1}. {option.text}
               </CustomText>
               <Image style={styles.chevron} source={icons.chevronForward} tintColor={colors.primary} resizeMode='contain' />
-            </TouchableOpacity>
+            </Pressable>
           ))}
         </View>
       </View>
