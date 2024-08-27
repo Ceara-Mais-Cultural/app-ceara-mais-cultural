@@ -25,7 +25,7 @@ const SignUp = () => {
     confirmaSenha: '',
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [status, setStatus] = useState(null as any);
+  const [status, setStatus] = useState([] as any);
 
   const [municipios, setMunicipios] = useState<any>([]);
   const [bairros, setBairros] = useState<any>([]);
@@ -44,8 +44,11 @@ const SignUp = () => {
   };
 
   const getMunicipioBairros = (idMunicipio: any) => {
+    setIsLoading(true);
+    setStatus([]);
     GetDataService.getNeighborhoods(idMunicipio).then((res) => {
       setBairros(res.data);
+      setIsLoading(false);
     });
   };
 
@@ -72,7 +75,7 @@ const SignUp = () => {
 
   const submit = () => {
     setIsLoading(true);
-    setStatus(null);
+    setStatus([]);
     const body = {
       cpf: form.cpfCnpj,
       full_name: form.nome,
@@ -83,13 +86,13 @@ const SignUp = () => {
       password: form.senha && form.confirmaSenha && form.senha === form.confirmaSenha ? form.senha : null,
     };
     AuthService.signUp(body)
-      .then((res) => {
+      .then(() => {
         setStatus(['success', 'Conta criada com sucesso!']);
         setTimeout(() => {
           router.replace('/sign-in');
         }, 2000);
       })
-      .catch((error) => {
+      .catch(() => {
         setStatus(['error', 'Erro ao criar conta']);
       })
       .finally(() => {
@@ -108,7 +111,7 @@ const SignUp = () => {
               <CustomText style={styles.doLoginText}>Nos fale um pouco sobre você</CustomText>
 
               <FormField title='Primeiro e último nome' required='true' value={form.nome} handleChangeText={(e: any) => setForm({ ...form, nome: e })} />
-              <FormField title='CPF/CNPJ' keyboardType='numeric' required='true' value={form.cpfCnpj} handleChangeText={(e: any) => handleCpfCnpjChange(e)} />
+              <FormField title='CPF/CNPJ' inputMode='numeric' required='true' value={form.cpfCnpj} handleChangeText={(e: any) => handleCpfCnpjChange(e)} />
               <FormSelectField
                 title='Município'
                 required='true'
@@ -134,9 +137,9 @@ const SignUp = () => {
               <>
                 <CustomText style={styles.doLoginText}>Informações de Login</CustomText>
 
-                <FormField title='E-mail' value={form.email} keyboardType='email-address' handleChangeText={(e: any) => setForm({ ...form, email: e })} />
-                <FormField title='Senha' value={form.senha} keyboardType='password' handleChangeText={(e: any) => setForm({ ...form, senha: e })} />
-                <FormField title='Confirme a senha' value={form.confirmaSenha} keyboardType='password' handleChangeText={(e: any) => setForm({ ...form, confirmaSenha: e })} />
+                <FormField title='E-mail' value={form.email} inputMode='email' handleChangeText={(e: any) => setForm({ ...form, email: e })} />
+                <FormField title='Senha' value={form.senha} inputMode='password' handleChangeText={(e: any) => setForm({ ...form, senha: e })} />
+                <FormField title='Confirme a senha' value={form.confirmaSenha} inputMode='password' handleChangeText={(e: any) => setForm({ ...form, confirmaSenha: e })} />
 
                 <View style={styles.buttonArea}>
                   <CustomButton title='Criar conta' disabled={!form.email || !form.senha || !form.confirmaSenha || form.senha !== form.confirmaSenha} type='Primary' handlePress={() => submit()} />

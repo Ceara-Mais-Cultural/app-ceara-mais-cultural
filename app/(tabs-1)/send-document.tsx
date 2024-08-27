@@ -38,7 +38,6 @@ const SendDocument = () => {
       setLoading(false);
       return;
     }
-
     const file = assets[0];
     const formData = new FormData();
     formData.append('file', {
@@ -110,21 +109,20 @@ const SendDocument = () => {
       <ScrollView style={styles.background}>
         <View style={styles.card}>
           <CustomText style={styles.title}>Enviar Documento</CustomText>
-          <CustomText style={styles.text}>Após preencher o documento de abertura de projeto que foi baixado no seu celular, envie-o aqui. Mas não se preocupe, você poderá voltar para essa tela mais tarde.</CustomText>
+          <CustomText style={styles.text}>Após preencher o documento com os detalhes da sua ideia, envie-o aqui. Não se preocupe, você poderá voltar para essa tela mais tarde.</CustomText>
           <View style={styles.buttonArea}>
-            <CustomButton title='Baixar modelo' width={150} type='Secondary' handlePress={async () => downloadAndShareFile()} />
+            <CustomButton title='Baixar modelo' type='Secondary' handlePress={async () => downloadAndShareFile()} />
           </View>
           <View style={styles.buttonArea}>
             <CustomButton title='Enviar documento' type='Primary' handlePress={async () => uploadDocument()} />
           </View>
 
           <CustomText style={styles.subTitle}>Importante!</CustomText>
-          <CustomText style={styles.text}>A sua ideia só sera avaliada após o envio do documento devidamente preenchido. Boa sorte!</CustomText>
+          <CustomText style={styles.text}>A sua ideia só sera avaliada após o envio do documento preenchido. Boa sorte!</CustomText>
           <View style={styles.buttonArea}>
             <CustomButton
               title='Continuar depois'
               type='Secondary'
-              width={150}
               handlePress={() => {
                 router.push('/ideas');
               }}
@@ -161,6 +159,7 @@ const styles = StyleSheet.create({
   text: {
     color: colors.text,
     marginBottom: 25,
+    textAlign: 'justify',
   },
 
   buttonArea: {

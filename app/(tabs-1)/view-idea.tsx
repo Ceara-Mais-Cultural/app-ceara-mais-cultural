@@ -21,7 +21,7 @@ const ViewIdea = () => {
   const [isModalVisible, setIsModalVisible] = useState<any>(idea);
   const [action, setAction] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState(null as any);
+  const [status, setStatus] = useState([] as any);
 
   useFocusEffect(
     useCallback(() => {
@@ -37,6 +37,7 @@ const ViewIdea = () => {
 
   const downloadAndShareFile = async () => {
     setStatus([]);
+    setLoading(true);
     try {
       // URL do arquivo que você deseja baixar
       const fileUrl = parsedIdea.file.replace('http', 'https');
@@ -51,7 +52,9 @@ const ViewIdea = () => {
       } else {
         setStatus(['error', 'Erro ao compartilhar documento. Tente novamente mais tarde']);
       }
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       setStatus(['error', 'Erro ao baixar documento. Tente novamente mais tarde']);
     }
   };

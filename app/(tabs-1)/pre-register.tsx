@@ -22,8 +22,10 @@ const PreRegister = () => {
     }, [idea])
   );
 
-  const handleClick = async () => {
-    await downloadAndShareFile();
+  const handleClick = async (download: boolean) => {
+    if (download) {
+      await downloadAndShareFile();
+    }
     router.push({ pathname: '/send-document', params: { idea: JSON.stringify(parsedIdea) } });
   };
 
@@ -59,7 +61,9 @@ const PreRegister = () => {
           <Image source={images.success} style={styles.image} />
           <CustomText style={styles.text}>Faça o download do termo de abertura do projeto com o botão abaixo para detalhar sua ideia com o nosso modelo.</CustomText>
           <View style={styles.buttonArea}>
-            <CustomButton title='Baixar modelo de projeto' type='Primary' handlePress={async () => handleClick()} />
+            <CustomButton title='Baixar modelo de projeto' type='Secondary' handlePress={async () => handleClick(true)} />
+            <CustomButton title='Continuar' type='Primary' handlePress={async () => handleClick(false)} />
+
           </View>
         </View>
       </ScrollView>
@@ -103,5 +107,6 @@ const styles = StyleSheet.create({
 
   buttonArea: {
     marginHorizontal: 'auto',
+    rowGap: 25,
   },
 });
