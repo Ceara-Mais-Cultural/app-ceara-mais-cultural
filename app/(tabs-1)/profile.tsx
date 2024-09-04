@@ -26,30 +26,30 @@ const Profile = () => {
       AsyncStorage.getItem('userData').then((userData: any) => {
         const user = JSON.parse(userData)
         user.role = AuthService.getPermissionLevel(user);
-        user.cpf = formatHiddenCpfCnpj(user?.cpf);
+        user.cpf = formatHiddenCpf(user?.cpf);
         setUser(user);
       });
     }, [])
   )
 
-  const formatHiddenCpfCnpj = (cpfCnpj: string) => {
-    const visibleDigits = 6; // Number of digits to show (first 4 and last 2)
-    const maskedChars = cpfCnpj.length - visibleDigits;
+  const formatHiddenCpf = (cpf: string) => {
+    const visibleDigits = 5; // Number of digits to show (first 4 and last 2)
+    const maskedChars = cpf.length - visibleDigits;
     const maskedString = '*'.repeat(maskedChars);
-    const visibleStart = cpfCnpj.slice(0, 4);
-    const visibleEnd = cpfCnpj.slice(-2);
+    const visibleStart = cpf.slice(0, 3);
+    const visibleEnd = cpf.slice(-2);
 
     return `${visibleStart}${maskedString}${visibleEnd}`;
   };
 
   return (
     <SafeAreaView style={{ flex: 1, paddingBottom: 80 }}>
-      <ScrollView style={styles.background}>
+      <ScrollView style={styles.background} keyboardShouldPersistTaps='handled'>
         <View style={styles.card}>
           <CustomText style={styles.title}>Minha Conta</CustomText>
 
           <FormField title='Nome' disabled='true' value={user?.full_name} />
-          <FormField title='CPF/CNPJ' disabled='true' value={user?.cpf} />
+          <FormField title='CPF' disabled='true' value={user?.cpf} />
           <FormField title='E-mail' disabled='true' value={user?.email} />
           <FormField title='Município' disabled='true' value={user?.city_name} />
           <FormField title='Bairro' disabled='true' value={user?.neighborhood_name} />

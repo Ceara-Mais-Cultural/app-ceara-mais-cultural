@@ -70,27 +70,58 @@ const Create = () => {
   };
 
   const getPromoters = () => {
-    GetDataService.getPromoters().then((res) => {
-      setMobilizadores(res.data);
-    });
+    setLoading(true);
+    GetDataService.getPromoters()
+      .then((res) => {
+        setMobilizadores(res.data);
+      })
+      .catch(() => {
+        setStatus(['error', 'Erro ao recuperar mobilizadores. Tente novamente mais tarde']);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   const getCategories = () => {
-    GetDataService.getCategories().then((res) => {
-      setCategorias(res.data);
-    });
+    setLoading(true);
+    GetDataService.getCategories()
+      .then((res) => {
+        setCategorias(res.data);
+      })
+      .catch(() => {
+        setStatus(['error', 'Erro ao recuperar categorias. Tente novamente mais tarde']);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   const getMunicipios = () => {
-    GetDataService.getCities().then((res) => {
-      setMunicipios(res.data);
-    });
+    setLoading(true);
+    GetDataService.getCities()
+      .then((res) => {
+        setMunicipios(res.data);
+      })
+      .catch(() => {
+        setStatus(['error', 'Erro ao recuperar municípios. Tente novamente mais tarde']);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   const getMunicipioBairros = (idMunicipio: any) => {
-    GetDataService.getNeighborhoods(idMunicipio).then((res) => {
-      setBairros(res.data);
-    });
+    GetDataService.getNeighborhoods(idMunicipio)
+      .then((res) => {
+        setBairros(res.data);
+      })
+      .catch(() => {
+        setStatus(['error', 'Erro ao recuperar bairros. Tente novamente mais tarde']);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   const selectMunicipio = (idMunicipio: number) => {
@@ -112,13 +143,13 @@ const Create = () => {
   };
 
   const validateForm = () => {
-    const formValid = !!form.titulo && !!form.descricao && !!form.categoria && !!form.municipio && !!form.bairro && !!form.local;
+    const formValid = !!form.titulo && !!form.descricao && !!form.categoria && !!form.municipio && !!form.bairro && !!form.local && !!form.image;
     return formValid;
   };
 
   // Função para enviar a imagem
   const submit = async () => {
-    setLoading(true)
+    setLoading(true);
     const formData = new FormData();
     formData.append('image', {
       uri: form.image.uri,
@@ -129,15 +160,15 @@ const Create = () => {
     formData.append('description', form.descricao);
     formData.append('city', user?.city);
     formData.append('neighborhood', user?.neighborhood);
-    if (!!form.community) {
-      formData.append('community', form.community);
+    if (form.comunidade) {
+      formData.append('community', form.comunidade);
     }
     formData.append('location', form.local);
     formData.append('category', form.categoria);
     formData.append('author', isAdmin ? form.mobilizadorAgente : user?.id);
     if (isAdmin) {
       formData.append('promoter', user?.id);
-    } else if (!!form.mobilizadorAgente) {
+    } else if (form.mobilizadorAgente) {
       formData.append('promoter', form.mobilizadorAgente);
     }
     formData.append('status', 'waiting');
@@ -162,23 +193,21 @@ const Create = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-
       <Loader visible={loading} message={status[1]} status={status[0]} />
 
       <View style={styles.header}>
         <CustomText style={styles.title}>Ideia de Projeto</CustomText>
       </View>
-      <ScrollView>
+      <ScrollView keyboardShouldPersistTaps='handled'>
         <View style={styles.card}>
           <FormField title='Título' required='true' value={form?.titulo} handleChangeText={(e: any) => setForm({ ...form, titulo: e })} />
-          <FormField title={isAdmin ? 'Descreva a ideia do agente cultural' : 'Conte um pouco sobre a sua ideia'} size='bg' required='true' value={form?.descricao} handleChangeText={(e: any) => setForm({ ...form, descricao: e })} />
+          <FormField title={isAdmin ? 'Descreva a ideia do agente cultural' : 'Conte um pouco sobre a sua ideia'} size='bg' required='true' value={form?.descricao} multiline={true} handleChangeText={(e: any) => setForm({ ...form, descricao: e })} />
           <FormSelectField title='Categoria' required='true' selected={form?.categoria} array={categorias} label='name' value='id' placeholder='Selecione' handleSelectChange={(e: any) => setForm({ ...form, categoria: e })} />
           <FormSelectField title={isAdmin ? 'Agente Cultural' : 'Mobilizador(a)'} required={isAdmin} selected={form?.mobilizadorAgente} array={isAdmin ? agentesCulturais : mobilizadores} label='full_name' value='id' placeholder='Nenhum(a)' handleSelectChange={(e: any) => setForm({ ...form, mobilizadorAgente: e })} />
           <FormSelectField
             title='Município'
             required='true'
             selected={form?.municipio}
-            disabled={true}
             array={municipios}
             label='name'
             value='id'
@@ -187,9 +216,9 @@ const Create = () => {
               selectMunicipio(idMunicipio);
             }}
           />
-          <FormSelectField title='Bairro' disabled={true} required='true' selected={form?.bairro} array={bairros} label='name' value='id' placeholder='Selecione' handleSelectChange={(e: any) => setForm({ ...form, bairro: e })} />
+          <FormSelectField title='Bairro' required='true' selected={form?.bairro} array={bairros} label='name' value='id' placeholder='Selecione' handleSelectChange={(e: any) => setForm({ ...form, bairro: e })} />
           <FormField title='Comunidade' value={form?.comunidade} handleChangeText={(e: any) => setForm({ ...form, comunidade: e })} />
-          <FormField title='Local' size='md' required='true' value={form?.local} handleChangeText={(e: any) => setForm({ ...form, local: e })} />
+          <FormField title='Local de realização' size='md' value={form?.local} handleChangeText={(e: any) => setForm({ ...form, local: e })} />
 
           {form?.image ? (
             <View style={styles.buttonArea}>
@@ -203,7 +232,7 @@ const Create = () => {
           )}
 
           <View style={styles.buttonArea}>
-            <CustomButton title='Continuar' type='Primary' disabled={!validateForm()} handlePress={submit}  />
+            <CustomButton title='Continuar' type='Primary' disabled={!validateForm()} handlePress={submit} />
           </View>
         </View>
       </ScrollView>

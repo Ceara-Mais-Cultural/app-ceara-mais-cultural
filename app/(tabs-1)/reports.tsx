@@ -134,7 +134,7 @@ const Reports = () => {
         <CustomText style={styles.title}>Relatório</CustomText>
         <View style={styles.buttonArea}>{isAdmin && <CustomButton title='Exportar Excel' type='Primary' width={160} height={50}  handlePress={async () => exportDataToExcel(ideas)} />}</View>
       </View>
-      <ScrollView style={styles.content}>
+      <ScrollView style={styles.content} keyboardShouldPersistTaps='handled'>
         <DynamicTable data={ideas} header={tableHeader} />
       </ScrollView>
     </SafeAreaView>

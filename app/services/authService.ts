@@ -80,38 +80,6 @@ const AuthService = {
     // Verifica se os dígitos calculados correspondem aos dígitos informados
     return cpf.charAt(9) == primeiroDigito && cpf.charAt(10) == segundoDigito;
   },
-
-  validateCnpj: (cnpj: any) => {
-    cnpj = cnpj.replace(/\D/g, '');
-
-    // Verifica se o CNPJ tem 14 dígitos
-    if (cnpj.length !== 14) {
-      return false;
-    }
-
-    // Calcula o primeiro dígito verificador
-    let soma = 0;
-    let peso = 5;
-    for (let i = 0; i < 12; i++) {
-      soma += parseInt(cnpj.charAt(i)) * peso;
-      peso = peso === 2 ? 9 : peso - 1;
-    }
-    let digito1 = 11 - (soma % 11);
-    let primeiroDigito = digito1 >= 10 ? 0 : digito1;
-
-    // Calcula o segundo dígito verificador
-    soma = 0;
-    peso = 6;
-    for (let i = 0; i < 13; i++) {
-      soma += parseInt(cnpj.charAt(i)) * peso;
-      peso = peso === 2 ? 9 : peso - 1;
-    }
-    let digito2 = 11 - (soma % 11);
-    let segundoDigito = digito2 >= 10 ? 0 : digito2;
-
-    // Verifica se os dígitos calculados correspondem aos dígitos informados
-    return cnpj.charAt(12) == primeiroDigito && cnpj.charAt(13) == segundoDigito;
-  },
 };
 
 export default AuthService;

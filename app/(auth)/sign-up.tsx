@@ -1,5 +1,5 @@
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
-import React, { useCallback, useEffect, useState } from 'react';
+import { Alert, ScrollView, StyleSheet, View, Text } from 'react-native';
+import React, { useCallback, useState } from 'react';
 import { colors } from '@/constants';
 import FormField from '@/components/FormField';
 import CustomButton from '@/components/CustomButton';
@@ -14,121 +14,276 @@ import Loader from '@/components/Loader';
 const SignUp = () => {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
-    nome: '',
-    cpfCnpj: '',
-    municipio: 0,
-    bairro: 0,
-    comunidade: '',
+    name: '',
+    cpf: '',
+    city: '',
+    neighborhood: '',
+    community: '',
 
     email: '',
-    senha: '',
-    confirmaSenha: '',
+    password: '',
+    confirmPassword: '',
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [status, setStatus] = useState([] as any);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [loadingMessage, setLoadingMessage] = useState<Array<any>>([]);
+  const [errors, setErrors] = useState({
+    name: '',
+    cpf: '',
+    city: '',
+    neighborhood: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
 
-  const [municipios, setMunicipios] = useState<any>([]);
-  const [bairros, setBairros] = useState<any>([]);
-  const [cpfCnpjError, setCpfCnpjError] = useState<boolean>(false);
+  const [cities, setCities] = useState<any>([]);
+  const [neighborhoods, setNeighborhoods] = useState<any>([]);
 
   useFocusEffect(
     useCallback(() => {
-      getMunicipios();
+      getCities();
     }, [])
   );
 
-  const getMunicipios = () => {
-    GetDataService.getCities().then((res) => {
-      setMunicipios(res.data);
-    });
+  const getCities = () => {
+    setLoadingMessage([]);
+    setLoading(true);
+    GetDataService.getCities()
+      .then((res) => {
+        setCities(res.data);
+      })
+      .catch(() => {
+        setLoadingMessage(['error', 'Erro ao recuperar municípios. Tente novamente mais tarde']);
+        setTimeout(() => {
+          router.replace('/sign-in');
+        }, 2000);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
-  const getMunicipioBairros = (idMunicipio: any) => {
-    setIsLoading(true);
-    setStatus([]);
-    GetDataService.getNeighborhoods(idMunicipio).then((res) => {
-      setBairros(res.data);
-      setIsLoading(false);
-    });
+  const getCityNeighborhoods = (idMunicipio: any) => {
+    setLoading(true);
+    setLoadingMessage([]);
+    GetDataService.getNeighborhoods(idMunicipio)
+      .then((res) => {
+        setNeighborhoods(res.data);
+      })
+      .catch(() => {
+        setLoadingMessage(['error', 'Erro ao recuperar bairros. Tente novamente mais tarde']);
+        setTimeout(() => {
+          router.replace('/sign-in');
+        }, 2000);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
-  const handleCpfCnpjChange = (input: string) => {
-    const cleanedInput = input.replace(/\D/g, '');
-    if (cleanedInput.length <= 11) {
-      const formattedCpf = cleanedInput.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-      setForm({ ...form, cpfCnpj: formattedCpf });
-      if (AuthService.validateCpf(formattedCpf)) setCpfCnpjError(false);
-      else setCpfCnpjError(true);
-    } else {
-      const formattedCnpj = cleanedInput.slice(0, 14).replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
-      setForm({ ...form, cpfCnpj: formattedCnpj });
-      if (AuthService.validateCnpj(formattedCnpj)) setCpfCnpjError(false);
-      else setCpfCnpjError(true);
+  const handleFieldChange = (field: string, newValue: any) => {
+    switch (field) {
+      case 'name':
+        validateName(newValue);
+        break;
+      case 'cpf':
+        validateCpf(newValue);
+        break;
+      case 'city':
+        validateCity(newValue);
+        break;
+      case 'neighborhood':
+        validateNeighborhood(newValue);
+        break;
+      case 'email':
+        validateEmail(newValue);
+        break;
+      case 'password':
+        validatePasswords(newValue, 'password');
+        break;
+      case 'confirmPassword':
+        validatePasswords(newValue, 'confirmPassword');
+        break;
+
+      default:
+        break;
     }
   };
 
-  const selectMunicipio = (idMunicipio: number) => {
-    if (!idMunicipio) return;
-    setForm({ ...form, municipio: idMunicipio });
-    getMunicipioBairros(idMunicipio);
+  const validateName = (firstLastName: string) => {
+    setForm({ ...form, name: firstLastName });
+    if (firstLastName.split(' ').length < 2 || firstLastName.split(' ')[1] === '') {
+      setErrors({ ...errors, name: 'Deve conter pelo menos duas palavras' });
+      return false;
+    } else {
+      setErrors({ ...errors, name: '' });
+      return true;
+    }
+  };
+
+  const validateCpf = (cpf: string) => {
+    const cleanedInput = cpf.replace(/\D/g, '');
+    let formatedValue = cpf;
+    let valid = true;
+    if (cleanedInput.length > 0 && cleanedInput.length != 11) {
+      setErrors({ ...errors, cpf: 'CPF em formato inválido' });
+      valid = false;
+    } else if (cleanedInput.length == 11) {
+      const formattedCpf = cleanedInput.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+      formatedValue = formattedCpf;
+      setErrors({ ...errors, cpf: '' });
+      valid = true;
+    } else {
+      setErrors({ ...errors, cpf: 'Este campo é obrigatório' });
+      valid = false;
+    }
+    setForm({ ...form, cpf: formatedValue });
+    return valid;
+  };
+
+  const validateCity = (cityId: string) => {
+    if (form.city !== cityId) selectCity(cityId);
+    if (!cityId) {
+      setErrors({ ...errors, city: 'Este campo é obrigatório' });
+      setForm({ ...form, city: cityId });
+      return false;
+    } else {
+      setErrors({ ...errors, city: '' });
+      setForm({ ...form, city: cityId });
+      return true;
+    }
+  };
+
+  const validateNeighborhood = (neighborhoodId: string) => {
+    if (!neighborhoodId) {
+      setErrors({ ...errors, neighborhood: 'Este é um campo obrigatório' });
+      setForm({ ...form, neighborhood: neighborhoodId });
+      return false;
+    } else {
+      setErrors({ ...errors, neighborhood: '' });
+      setForm({ ...form, neighborhood: neighborhoodId });
+      return true;
+    }
+  };
+
+  const validateEmail = (email: string) => {
+    setForm({ ...form, email: email });
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      setErrors({ ...errors, email: 'Este campo é obrigatório' });
+    } else if (emailRegex.test(email) || !email) {
+      setErrors({ ...errors, email: '' });
+      return true;
+    } else {
+      setErrors({ ...errors, email: 'Formato de email inválido' });
+      return false;
+    }
+  };
+
+  const validatePasswords = (password: string, type: string) => {
+    if (type == 'password') {
+      setForm({ ...form, password: password });
+      if (!form.password) {
+        setErrors({ ...errors, password: 'Este campo é obrigatório' });
+      } else if (password.length < 6) {
+        setErrors({ ...errors, password: 'A senha deve ter pelo menos 6 caracteres' });
+        return false;
+      } else {
+        setErrors({ ...errors, password: '' });
+        return true;
+      }
+    } else {
+      setForm({ ...form, confirmPassword: password });
+      if (!!form.password && password != form.password) {
+        setErrors({ ...errors, confirmPassword: 'As senhas não coincidem' });
+        return false;
+      } else {
+        setErrors({ ...errors, confirmPassword: '' });
+        return true;
+      }
+    }
+  };
+
+  const validateForm = () => {
+    if (step == 1) {
+      return validateName(form.name) && validateCpf(form.cpf) && validateCity(form.city) && validateNeighborhood(form.neighborhood);
+    } else {
+      return validateEmail(form.email) && validatePasswords(form.password, 'password') && validatePasswords(form.confirmPassword, 'confirmPassword');
+    }
+  };
+
+  const nextStep = () => {
+    if (validateForm()) setStep(step + 1);
+  };
+
+  const selectCity = (cityId: string) => {
+    if (!cityId) {
+      setForm({ ...form, neighborhood: '' });
+      setNeighborhoods([]);
+      return;
+    }
+    setForm({ ...form, city: cityId });
+    getCityNeighborhoods(cityId);
   };
 
   const submit = () => {
-    setIsLoading(true);
-    setStatus([]);
+    if (!validateForm()) return;
+    setLoading(true);
+    setLoadingMessage([]);
     const body = {
-      cpf: form.cpfCnpj,
-      full_name: form.nome,
+      cpf: form.cpf,
+      full_name: form.name,
       email: form.email,
-      city: form.municipio,
-      neighborhood: form.bairro,
-      community: form.comunidade ? form.comunidade : null,
-      password: form.senha && form.confirmaSenha && form.senha === form.confirmaSenha ? form.senha : null,
+      city: form.city,
+      neighborhood: form.neighborhood,
+      community: form.community ? form.community : null,
+      password: form.password && form.confirmPassword && form.password === form.confirmPassword ? form.password : null,
     };
     AuthService.signUp(body)
       .then(() => {
-        setStatus(['success', 'Conta criada com sucesso!']);
+        setLoadingMessage(['success', 'Conta criada com sucesso!']);
         setTimeout(() => {
           router.replace('/sign-in');
         }, 2000);
       })
       .catch(() => {
-        setStatus(['error', 'Erro ao criar conta']);
+        setLoadingMessage(['error', 'Erro ao criar conta']);
       })
       .finally(() => {
-        setIsLoading(false);
+        setLoading(false);
       });
   };
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <Loader visible={isLoading} message={status[1]} status={status[0]} />
-      <ScrollView style={styles.background}>
+      <Loader visible={loading} status={loadingMessage[0]} message={loadingMessage[1]} />
+      <ScrollView style={styles.background} keyboardShouldPersistTaps='handled'>
         <View style={styles.card}>
           <CustomText style={styles.title}>Crie sua conta</CustomText>
           {(step === 1 && (
             <>
               <CustomText style={styles.doLoginText}>Nos fale um pouco sobre você</CustomText>
 
-              <FormField title='Primeiro e último nome' required='true' value={form.nome} handleChangeText={(e: any) => setForm({ ...form, nome: e })} />
-              <FormField title='CPF/CNPJ' inputMode='numeric' required='true' value={form.cpfCnpj} handleChangeText={(e: any) => handleCpfCnpjChange(e)} />
+              <FormField title='Primeiro e último nome' required='true' value={form.name} handleChangeText={(newValue: any) => handleFieldChange('name', newValue)} errorMessage={errors.name} />
+              <FormField title='CPF' inputMode='numeric' required='true' value={form.cpf} handleChangeText={(newValue: any) => handleFieldChange('cpf', newValue)} errorMessage={errors.cpf} />
               <FormSelectField
                 title='Município'
                 required='true'
-                selected={form.municipio}
-                array={municipios}
+                selected={form.city}
+                array={cities}
                 label='name'
                 value='id'
                 placeholder='Selecione'
-                handleSelectChange={(idMunicipio: number) => {
-                  selectMunicipio(idMunicipio);
+                handleSelectChange={(newValue: any) => {
+                  handleFieldChange('city', newValue);
                 }}
+                errorMessage={errors.city}
               />
-              <FormSelectField title='Bairro' disabled={bairros.length == 0} required='true' selected={form.bairro} array={bairros} label='name' value='id' placeholder='Selecione' handleSelectChange={(e: any) => setForm({ ...form, bairro: e })} />
-              <FormField title='Comunidade' value={form.comunidade} handleChangeText={(e: any) => setForm({ ...form, comunidade: e })} />
+              <FormSelectField title='Bairro' disabled={neighborhoods.length == 0} required='true' selected={form.neighborhood} array={neighborhoods} label='name' value='id' placeholder='Selecione' handleSelectChange={(newValue: any) => handleFieldChange('neighborhood', newValue)} errorMessage={errors.neighborhood} />
+              <FormField title='Comunidade' value={form.community} handleChangeText={(newValue: any) => setForm({ ...form, community: newValue })} />
 
               <View style={styles.buttonArea}>
-                <CustomButton title='Continuar' disabled={!form.nome || !form.cpfCnpj || !form.municipio || !form.bairro || cpfCnpjError} type='Primary' handlePress={() => setStep(step + 1)} />
+                <CustomButton title='Continuar' disabled={loading} type='Primary' handlePress={() => nextStep()} />
                 <CustomButton title='Já tenho uma conta' type='Link' handlePress={() => router.push('/sign-in')} />
               </View>
             </>
@@ -136,13 +291,14 @@ const SignUp = () => {
             (step == 2 && (
               <>
                 <CustomText style={styles.doLoginText}>Informações de Login</CustomText>
-
-                <FormField title='E-mail' value={form.email} inputMode='email' handleChangeText={(e: any) => setForm({ ...form, email: e })} />
-                <FormField title='Senha' value={form.senha} inputMode='password' handleChangeText={(e: any) => setForm({ ...form, senha: e })} />
-                <FormField title='Confirme a senha' value={form.confirmaSenha} inputMode='password' handleChangeText={(e: any) => setForm({ ...form, confirmaSenha: e })} />
+                <Text></Text>
+                <FormField title='E-mail' value={form.email} inputMode='email' handleChangeText={(newValue: any) => handleFieldChange('email', newValue)} errorMessage={errors.email} />
+                <FormField title='Senha' value={form.password} inputMode='text' handleChangeText={(newValue: any) => handleFieldChange('password', newValue)} errorMessage={errors.password} />
+                <FormField title='Confirme a senha' value={form.confirmPassword} inputMode='text' handleChangeText={(newValue: any) => handleFieldChange('confirmPassword', newValue)} errorMessage={errors.confirmPassword} />
 
                 <View style={styles.buttonArea}>
-                  <CustomButton title='Criar conta' disabled={!form.email || !form.senha || !form.confirmaSenha || form.senha !== form.confirmaSenha} type='Primary' handlePress={() => submit()} />
+                  <CustomButton title='Criar conta' disabled={loading} type='Primary' handlePress={() => submit()} />
+                  <CustomButton title='Voltar' disabled={loading} type='Secondary' handlePress={() => setStep(step - 1)} />
                   <CustomButton title='Já tenho uma conta' type='Link' handlePress={() => router.push('/sign-in')} />
                 </View>
               </>

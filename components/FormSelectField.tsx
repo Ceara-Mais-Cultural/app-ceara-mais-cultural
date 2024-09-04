@@ -4,11 +4,11 @@ import { colors } from '@/constants';
 import { Picker } from '@react-native-picker/picker';
 import CustomText from './CustomText';
 
-const FormSelectField = ({ title, placeholder, selected, array, label, value, required, disabled, handleSelectChange }: any) => {
+const FormSelectField = ({ title, placeholder, selected, array, label, value, required, disabled, handleSelectChange, errorMessage }: any) => {
   return (
     <View style={styles.formSelectField}>
       <CustomText style={styles.title}>{`${title} ${required ? '*' : ''}`}</CustomText>
-      <View style={styles.inputArea}>
+      <View style={[styles.inputArea, errorMessage && styles.errorBorder]}>
         <Picker style={styles.picker} enabled={!disabled} selectedValue={selected} onValueChange={handleSelectChange}>
           <Picker.Item style={styles.placeholder} label={placeholder} value={null} />
           {array && array.map((option: any, index: number) => (
@@ -16,6 +16,7 @@ const FormSelectField = ({ title, placeholder, selected, array, label, value, re
           ))}
         </Picker>
       </View>
+      {errorMessage && <CustomText style={styles.errorMessage}>{errorMessage}</CustomText>}
     </View>
   );
 };
@@ -47,5 +48,14 @@ const styles = StyleSheet.create({
 
   placeholder: {
     color: colors.placeholder,
+  },
+
+  errorBorder: {
+    borderColor: 'red',
+  },
+
+  errorMessage: {
+    color: 'red',
+    marginTop: 5,
   },
 });

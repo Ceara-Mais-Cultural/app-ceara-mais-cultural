@@ -22,7 +22,7 @@ const DynamicTable = ({ data, header }: any) => {
   }
 
   return (
-    <ScrollView horizontal={true}>
+    <ScrollView horizontal={true} keyboardShouldPersistTaps='handled'>
       <View style={styles.container}>
         <View style={[styles.row, styles.headerCell, { width: columns.length * columnWidth }]}>
           {header.map((column: any, index: any) => (

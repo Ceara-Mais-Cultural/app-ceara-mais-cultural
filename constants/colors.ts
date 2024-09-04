@@ -11,6 +11,7 @@ export default {
   placeholder: '#828282',
   pending: '#FAFE48',
   danger: '#FF2424',
+  error: '#FF2424',
   confirm: '#54E85E',
   peding: '#FAFE48',
 };

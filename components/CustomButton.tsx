@@ -1,12 +1,21 @@
-import { StyleSheet, ActivityIndicator, Pressable } from 'react-native';
+import { StyleSheet, Pressable } from 'react-native';
 import React from 'react';
 import { colors } from '@/constants';
 import CustomText from './CustomText';
 
 const CustomButton = ({ title, handlePress, type, disabled, height = 50, width = 250 }: any) => {
   return (
-    <Pressable onPress={handlePress} disabled={disabled} style={[disabled ? styles.disabled : styles.commonBackground, { height, width }, type === 'Primary' ? styles.backgroundPrimary : type === 'Secondary' ? styles.backgroundSecondary : type === 'Link' ? styles.backgroundLink : styles.backgroundDanger]}>
-      {<CustomText style={[styles.commonTitle, type === 'Primary' ? styles.titlePrimary : type === 'Secondary' ? styles.titleSecondary : type === 'Link' ? styles.titleLink : styles.titleDanger]}>{title}</CustomText>}
+    <Pressable
+      onPress={handlePress}
+      disabled={disabled}
+      style={({ pressed }) => [
+        disabled ? styles.disabled : styles.commonBackground,
+        { height, width },
+        type === 'Primary' ? styles.backgroundPrimary : type === 'Secondary' ? styles.backgroundSecondary : type === 'Link' ? styles.backgroundLink : styles.backgroundDanger,
+        pressed && styles.pressed, // Aplica opacidade quando pressionado
+      ]}
+    >
+      <CustomText style={[styles.commonTitle, type === 'Primary' ? styles.titlePrimary : type === 'Secondary' ? styles.titleSecondary : type === 'Link' ? styles.titleLink : styles.titleDanger]}>{title}</CustomText>
     </Pressable>
   );
 };
@@ -32,6 +41,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 15,
     opacity: 0.4,
+  },
+
+  pressed: {
+    opacity: 0.6, // Define a opacidade ao pressionar
   },
 
   backgroundPrimary: {

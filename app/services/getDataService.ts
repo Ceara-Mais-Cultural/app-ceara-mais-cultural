@@ -26,6 +26,12 @@ const GetDataService = {
   getAgents: async () => {
     return await api.get(`/users/?is_staff=False&is_superuser=False`);
   },
+  getIdeaVotes: async (ideaId: number) => {
+    return await api.get(`/projects-votes/?project=${ideaId}`);
+  },
+  getUserName: async (userId: number) => {
+    return await api.get(`/users/?id=${userId}`);
+  },
 };
 
 export default GetDataService;

@@ -131,26 +131,47 @@ const Ideas = () => {
   };
 
   const getCategories = () => {
-    GetDataService.getCategories().then((res) => {
-      setCategorias(res.data);
-    });
+    setLoading(true);
+    GetDataService.getCategories()
+      .then((res) => {
+        setCategorias(res.data);
+      })
+      .catch(() => {
+        setStatus(['error', 'Erro ao recuperar categorias. Tente novamente mais tarde']);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   const getMunicipios = () => {
-    GetDataService.getCities().then((res) => {
-      setMunicipios(res.data);
-    });
+    GetDataService.getCities()
+      .then((res) => {
+        setMunicipios(res.data);
+      })
+      .catch(() => {
+        setStatus(['error', 'Erro ao recuperar municípios. Tente novamente mais tarde']);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   const getMunicipioBairros = (idMunicipio: any) => {
-    GetDataService.getNeighborhoods(idMunicipio).then((res) => {
-      setBairros(res.data);
-    });
+    GetDataService.getNeighborhoods(idMunicipio)
+      .then((res) => {
+        setBairros(res.data);
+      })
+      .catch(() => {
+        setStatus(['error', 'Erro ao recuperar bairros. Tente novamente mais tarde']);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   return (
     <SafeAreaView style={{ flex: 1, paddingBottom: 80 }}>
-      
       <Loader visible={loading} message={status[1]} status={status[0]} />
 
       {/* MODAL */}
@@ -185,10 +206,10 @@ const Ideas = () => {
       </Modal>
       {/* END MODAL */}
 
-      <ScrollView style={styles.background} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+      <ScrollView style={styles.background} keyboardShouldPersistTaps='handled' refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
         <View style={styles.header}>
           <View style={styles.titleArea}>
-            <Pressable onPress={() => router.replace('/stages')}>
+            <Pressable onPress={() => router.replace('/sign-in')}>
               <Image style={styles.arrowBack} source={icons.arrowBack} resizeMode='contain' tintColor={colors.white} />
             </Pressable>
             <CustomText style={styles.title}>Ideias</CustomText>

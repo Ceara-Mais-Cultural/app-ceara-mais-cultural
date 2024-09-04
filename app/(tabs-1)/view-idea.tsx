@@ -1,7 +1,7 @@
 import { View, StyleSheet, ScrollView, Image, Text, TouchableOpacity, Pressable, Modal, Alert } from 'react-native';
 import React, { useCallback, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, icons, images } from '@/constants';
+import { colors, icons } from '@/constants';
 import { router } from 'expo-router';
 import { useLocalSearchParams } from 'expo-router';
 import CustomText from '@/components/CustomText';
@@ -12,6 +12,7 @@ import PostDataService from '../services/postDataService';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import Loader from '@/components/Loader';
+import GetDataService from '../services/getDataService';
 
 const ViewIdea = () => {
   const { idea } = useLocalSearchParams();
@@ -22,6 +23,7 @@ const ViewIdea = () => {
   const [action, setAction] = useState(false);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState([] as any);
+  const [voteMembers, setVoteMembers] = useState([] as any);
 
   useFocusEffect(
     useCallback(() => {
@@ -31,7 +33,9 @@ const ViewIdea = () => {
         const role = AuthService.getPermissionLevel(user);
         setRole(role);
       });
+      setVoteMembers([]);
       setParsedIdea(JSON.parse(idea as any));
+      getVotes(JSON.parse(idea as any).id);
     }, [idea])
   );
 
@@ -59,6 +63,19 @@ const ViewIdea = () => {
     }
   };
 
+  const getVotes = (ideiaId: number) => {
+    GetDataService.getIdeaVotes(ideiaId).then((res: any) => {
+      const votes = res.data.map(async (vote: any) => {
+        const userData = await GetDataService.getUserName(vote.user);
+        const memberName = userData?.data[0]?.full_name;
+        return { name: memberName, vote: vote.vote };
+      });
+      Promise.all(votes).then((results) => {
+        setVoteMembers(results);
+      });
+    });
+  };
+
   const openModal = (approve: boolean) => {
     setAction(approve);
     setIsModalVisible(true);
@@ -83,7 +100,8 @@ const ViewIdea = () => {
             router.replace('/ideas');
           }, 2000);
         })
-        .catch(() => {
+        .catch((error) => {
+          console.log(error);
           setStatus(['error', 'Erro ao salvar voto. Tente novamente mais tarde']);
         })
         .finally(() => {
@@ -119,13 +137,11 @@ const ViewIdea = () => {
       </Modal>
       {/* END MODAL */}
 
-      <ScrollView>
+      <ScrollView keyboardShouldPersistTaps='handled'>
         <View style={styles.card}>
           <CustomText style={styles.title}>{parsedIdea?.title}</CustomText>
           {/* Imagem */}
-          <View style={{ height: 200, width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', marginVertical: 10 }}>
-            <Image source={{ uri: parsedIdea?.image?.replace('http', 'https') }} style={styles.image} resizeMode='contain' />
-          </View>
+          <View style={parsedIdea?.image ? { height: 200, width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', marginVertical: 10 } : {}}>{parsedIdea?.image ? <Image source={{ uri: parsedIdea?.image?.replace('http', 'https') }} style={styles.image} resizeMode='contain' /> : <></>}</View>
 
           {/* Detalhes do Projeto */}
           <View style={styles.fieldArea}>
@@ -162,7 +178,8 @@ const ViewIdea = () => {
             {/* Comunidade */}
             <View style={styles.fieldArea}>
               <CustomText style={styles.label}>
-                Comunidade: <CustomText>{parsedIdea?.community !== 'undefined' ? parsedIdea?.community : ''}</CustomText>
+                <CustomText>{parsedIdea.community}</CustomText>
+                Comunidade: <CustomText>{parsedIdea?.community ? parsedIdea?.community : '-'}</CustomText>
               </CustomText>
             </View>
             {/* Local */}
@@ -182,23 +199,18 @@ const ViewIdea = () => {
                 Categoria: <CustomText>{parsedIdea?.category_name}</CustomText>
               </CustomText>
             </View>
-
             {/* Agente Cultural */}
-            {role !== 'Mobilizador' && (
-              <View style={styles.fieldArea}>
-                <CustomText style={styles.label}>
-                  Agente Cultural: <CustomText>{parsedIdea?.author_name}</CustomText>
-                </CustomText>
-              </View>
-            )}
-
+            <View style={styles.fieldArea}>
+              <CustomText style={styles.label}>
+                Agente Cultural: <CustomText>{parsedIdea?.author_name ? parsedIdea?.author_name : '-'}</CustomText>
+              </CustomText>
+            </View>
             {/* Mobilizador */}
             <View style={styles.fieldArea}>
               <CustomText style={styles.label}>
-                Mobilizador: <CustomText>{parsedIdea?.promoter_name}</CustomText>
+                Mobilizador: <CustomText>{parsedIdea?.promoter_name ? parsedIdea?.promoter_name : '-'}</CustomText>
               </CustomText>
             </View>
-
             {/* Data de Submissão */}
             <View style={styles.fieldArea}>
               <CustomText style={styles.label}>
@@ -223,20 +235,26 @@ const ViewIdea = () => {
             )}
           </View>
 
-          {(parsedIdea?.status == 'pending' && role == 'Comissão' && (
-            <View style={styles.evaluationArea}>
-              <CustomText style={styles.evaluationText}>Avaliação</CustomText>
-
-              <CustomButton title='Aprovar' type='Primary' width={200} height={50} style={{ marginHorizontal: 'auto' }} handlePress={() => openModal(true)} />
-              <CustomButton title='Recusar' type='Secondary' width={200} height={50} style={{ marginHorizontal: 'auto' }} handlePress={() => openModal(false)} />
-            </View>
-          )) ||
-            (role == 'Comissão' && (
+          {role == 'Comissão' && (
+            <View style={styles.fieldArea}>
+              <CustomText style={styles.sectionTitle}>Votos</CustomText>
+              {voteMembers?.length > 0 ? (
+                voteMembers?.map((member: any, index: number) => (
+                  <View key={index} style={styles.voteItem}>
+                    <CustomText>{`${member.id == user.id ? 'Você' : member.name}: ${member.vote === 'approved' ? 'Aprovou' : 'Recusou'}`}</CustomText>
+                  </View>
+                ))
+              ) : (
+                <CustomText>Nenhum voto registrado.</CustomText>
+              )}
               <View style={styles.evaluationArea}>
                 <CustomText style={styles.evaluationText}>Avaliação</CustomText>
-                <CustomText>Você já {parsedIdea.status == 'approved' ? 'aprovou' : 'recusou'} essa ideia</CustomText>
+
+                <CustomButton title='Aprovar' type='Primary' width={200} height={50} style={{ marginHorizontal: 'auto' }} handlePress={() => openModal(true)} />
+                <CustomButton title='Recusar' type='Secondary' width={200} height={50} style={{ marginHorizontal: 'auto' }} handlePress={() => openModal(false)} />
               </View>
-            ))}
+            </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -250,6 +268,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background_light,
     flex: 1,
     paddingBottom: 80,
+  },
+  voteItem: {
+    paddingVertical: 5,
   },
   header: {
     display: 'flex',

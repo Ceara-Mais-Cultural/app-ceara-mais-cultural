@@ -106,7 +106,7 @@ const SendDocument = () => {
     <SafeAreaView style={{ flex: 1 }}>
       <Loader visible={loading} message={status[1]} status={status[0]} />
 
-      <ScrollView style={styles.background}>
+      <ScrollView style={styles.background} keyboardShouldPersistTaps='handled'>
         <View style={styles.card}>
           <CustomText style={styles.title}>Enviar Documento</CustomText>
           <CustomText style={styles.text}>Após preencher o documento com os detalhes da sua ideia, envie-o aqui. Não se preocupe, você poderá voltar para essa tela mais tarde.</CustomText>

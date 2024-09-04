@@ -55,7 +55,7 @@ const PreRegister = () => {
     <SafeAreaView style={{ flex: 1 }}>
       <Loader visible={loading} message={status[1]} status={status[0]} />
 
-      <ScrollView style={styles.background}>
+      <ScrollView style={styles.background} keyboardShouldPersistTaps='handled'>
         <View style={styles.card}>
           <CustomText style={styles.title}>Projeto Pré-Cadastrado</CustomText>
           <Image source={images.success} style={styles.image} />
