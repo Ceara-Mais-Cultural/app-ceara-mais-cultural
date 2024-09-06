@@ -10,6 +10,10 @@ const AuthService = {
     return await api.post('/users/', formData);
   },
 
+  editUserData: async (formData: any, id: string) => {
+    return await api.put(`/users/${id}/`, formData);
+  },
+
   isLoggedIn: async () => {
     const token = await AsyncStorage.getItem('authToken');
     return !!token;

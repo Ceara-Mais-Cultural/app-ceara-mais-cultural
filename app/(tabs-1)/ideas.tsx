@@ -1,5 +1,5 @@
-import React, { useCallback, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Pressable, RefreshControl, Modal } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, Pressable, RefreshControl, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import FormField from '@/components/FormField';
@@ -8,7 +8,6 @@ import { router } from 'expo-router';
 import AuthService from '../services/authService';
 import getDataService from '../services/getDataService';
 import CustomText from '@/components/CustomText';
-import { useFocusEffect } from '@react-navigation/native';
 import FormSelectField from '@/components/FormSelectField';
 import GetDataService from '../services/getDataService';
 import { colors, icons } from '@/constants';
@@ -19,43 +18,44 @@ import IdeaCard from '@/components/IdeaCard';
 
 const Ideas = () => {
   const initialFilter = {
-    titulo: '',
-    categoria: '',
-    municipio: '',
-    bairro: '',
-    comunidade: '',
+    title: '',
+    category: '',
+    city: '',
+    neighborhood: '',
+    community: '',
   };
-  const [filter, setFilter] = useState<any>(initialFilter);
-  const [categorias, setCategorias] = useState([]);
-  const [municipios, setMunicipios] = useState([]);
-  const [bairros, setBairros] = useState([]);
-  const [ideas, setIdeas] = useState([]);
-  const [searchText, setSearchText] = useState('');
-  const [initialIdeas, setInitialIdeas] = useState([]);
-  const [user, setUser] = useState<any>(null);
-  const [role, setRole] = useState('Agente Cultural');
+
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState([] as any);
+  const [filter, setFilter] = useState<any>(initialFilter);
+  const [searchText, setSearchText] = useState('');
+  const [categories, setCategories] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [neighborhoods, setNeighborhoods] = useState([]);
+
+  const [ideas, setIdeas] = useState([]);
+  const [initialIdeas, setInitialIdeas] = useState([]);
   const filteredIdeas = ideas.filter((idea: any) => idea.title.toLowerCase().includes(searchText.toLowerCase()));
 
-  useFocusEffect(
-    useCallback(() => {
-      loadScreen();
-    }, [])
-  );
+  const [user, setUser] = useState<any>(null);
+  const [role, setRole] = useState('Agente Cultural');
+
+  const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState([] as any);
+
+  useEffect(() => {
+    loadScreen();
+  }, []);
 
   const loadScreen = async () => {
     setFilter(initialFilter);
-    setLoading(true);
     const storedUserData = await AsyncStorage.getItem('userData');
     if (storedUserData) {
       const user = JSON.parse(storedUserData);
       const role = AuthService.getPermissionLevel(user);
       setUser(user);
       setRole(role);
-      getMunicipios();
-      getMunicipioBairros(user?.city);
+      getCities();
+      getCityNeighborhoods(user?.city);
       if (role === 'Agente Cultural') getIdeas(user?.id);
       else if (role === 'Mobilizador') getIdeas(user?.id, user?.city);
       else getIdeas();
@@ -82,7 +82,7 @@ const Ideas = () => {
         setLoading(false);
       },
       () => {
-        setStatus(['error', 'Erro ao recuperar ideias. Tente novamente mais tarde']);
+        setLoadingMessage(['error', 'Erro ao recuperar ideias. Tente novamente mais tarde']);
       }
     );
   };
@@ -93,8 +93,8 @@ const Ideas = () => {
   };
 
   const openFilter = () => {
-    setFilter({ ...filter, municipio: user?.city, bairro: user?.neighborhood, comunidade: user?.comunity });
-    getMunicipios();
+    setFilter({ ...filter, city: user?.city, neighborhood: user?.neighborhood, community: user?.community });
+    getCities();
     getCategories();
     setIsModalVisible(true);
   };
@@ -102,25 +102,25 @@ const Ideas = () => {
   const closeFilter = (action: boolean) => {
     let filteredData: any = [...initialIdeas];
     if (action) {
-      if (filter.titulo) {
-        filteredData = filteredData.filter((idea: any) => idea.title.toLowerCase().includes(filter.titulo.toLowerCase()));
+      if (filter.title) {
+        filteredData = filteredData.filter((idea: any) => idea.title.toLowerCase().includes(filter.title.toLowerCase()));
       }
-      if (filter.categoria) {
-        filteredData = filteredData.filter((idea: any) => idea.category === filter.categoria);
+      if (filter.category) {
+        filteredData = filteredData.filter((idea: any) => idea.category === filter.category);
       }
-      if (filter.municipio) {
-        filteredData = filteredData.filter((idea: any) => idea.city === filter.municipio);
+      if (filter.city) {
+        filteredData = filteredData.filter((idea: any) => idea.city === filter.city);
       }
-      if (filter.bairro) {
-        filteredData = filteredData.filter((idea: any) => idea.neighborhood === filter.bairro);
+      if (filter.neighborhood) {
+        filteredData = filteredData.filter((idea: any) => idea.neighborhood === filter.neighborhood);
       }
-      if (filter.comunidade) {
-        filteredData = filteredData.filter((idea: any) => idea.community.toLowerCase().includes(filter.comunidade.toLowerCase()));
+      if (filter.community) {
+        filteredData = filteredData.filter((idea: any) => idea.community.toLowerCase().includes(filter.community.toLowerCase()));
       }
       if (filteredData.length === 0) setIdeas(filteredData);
-      else if (filteredData.every((value: any, index: any) => value === initialIdeas[index])) {
-        setIdeas(initialIdeas);
-      } else {
+      // else if (filteredData.every((value: any, index: any) => value === initialIdeas[index])) {
+      //   setIdeas(initialIdeas);
+      else {
         setIdeas(filteredData);
       }
     } else {
@@ -134,36 +134,43 @@ const Ideas = () => {
     setLoading(true);
     GetDataService.getCategories()
       .then((res) => {
-        setCategorias(res.data);
+        setCategories(res.data);
       })
       .catch(() => {
-        setStatus(['error', 'Erro ao recuperar categorias. Tente novamente mais tarde']);
+        setLoadingMessage(['error', 'Erro ao recuperar categorias. Tente novamente mais tarde']);
       })
       .finally(() => {
         setLoading(false);
       });
   };
 
-  const getMunicipios = () => {
+  const getCities = () => {
     GetDataService.getCities()
       .then((res) => {
-        setMunicipios(res.data);
+        setCities(res.data);
       })
       .catch(() => {
-        setStatus(['error', 'Erro ao recuperar municípios. Tente novamente mais tarde']);
+        setLoadingMessage(['error', 'Erro ao recuperar municípios. Tente novamente mais tarde']);
       })
       .finally(() => {
         setLoading(false);
       });
   };
 
-  const getMunicipioBairros = (idMunicipio: any) => {
-    GetDataService.getNeighborhoods(idMunicipio)
+  const getCityNeighborhoods = (cityId: any) => {
+    if (!cityId) return;
+    setLoading(true);
+    setLoadingMessage([]);
+    setFilter({ ...filter, neighborhood: '' });
+    GetDataService.getNeighborhoods(cityId)
       .then((res) => {
-        setBairros(res.data);
+        setNeighborhoods(res.data);
       })
       .catch(() => {
-        setStatus(['error', 'Erro ao recuperar bairros. Tente novamente mais tarde']);
+        setLoadingMessage(['error', 'Erro ao recuperar bairros. Tente novamente mais tarde']);
+        setTimeout(() => {
+          setLoading(false);
+        }, 1500);
       })
       .finally(() => {
         setLoading(false);
@@ -172,30 +179,30 @@ const Ideas = () => {
 
   return (
     <SafeAreaView style={{ flex: 1, paddingBottom: 80 }}>
-      <Loader visible={loading} message={status[1]} status={status[0]} />
+      <Loader visible={loading} status={loadingMessage[0]} message={loadingMessage[1]} />
 
       {/* MODAL */}
       <Modal animationType='fade' transparent={true} visible={isModalVisible} onRequestClose={() => closeFilter(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <CustomText style={styles.modalTitle}>Filtros</CustomText>
-            <FormField title='Título' width='80%' value={filter.titulo} handleChangeText={(e: any) => setFilter({ ...filter, titulo: e })} />
-            <FormSelectField title='Categoria' selected={filter.categoria} array={categorias} label='name' value='id' placeholder='Selecione' handleSelectChange={(e: any) => setFilter({ ...filter, categoria: e })} />
+            <FormField title='Título' width='80%' value={filter.title} handleChangeText={(e: any) => setFilter({ ...filter, title: e })} />
+            <FormSelectField title='Categoria' selected={filter.category} array={categories} label='name' value='id' placeholder='Selecione' handleSelectChange={(e: any) => setFilter({ ...filter, category: e })} />
             <FormSelectField
               title='Município'
-              selected={filter.municipio}
-              array={municipios}
+              selected={filter.city}
+              array={cities}
               label='name'
               value='id'
               disabled={role !== 'Comissão'}
               placeholder='Selecione'
               handleSelectChange={(e: any) => {
-                setFilter({ ...filter, municipio: e });
-                getMunicipioBairros(e);
+                setFilter({ ...filter, city: e });
+                getCityNeighborhoods(e);
               }}
             />
-            <FormSelectField title='Bairro' selected={filter.bairro} array={bairros} label='name' value='id' disabled={role !== 'Comissão'} placeholder='Selecione' handleSelectChange={(e: any) => setFilter({ ...filter, bairro: e })} />
-            <FormField title='Comunidade' width='80%' value={filter.comunidade} handleChangeText={(e: any) => setFilter({ ...filter, comunidade: e })} />
+            <FormSelectField title='Bairro' selected={filter.neighborhood} array={neighborhoods} label='name' value='id' disabled={role !== 'Comissão'} placeholder='Selecione' handleSelectChange={(e: any) => setFilter({ ...filter, neighborhood: e })} />
+            <FormField title='Comunidade' width='80%' value={filter.community} handleChangeText={(e: any) => setFilter({ ...filter, community: e })} />
 
             <View style={styles.filterButtons}>
               <CustomButton title='Limpar' type='Secondary' width={135} height={50} handlePress={() => closeFilter(false)} />
@@ -221,6 +228,21 @@ const Ideas = () => {
           </View>
         </View>
 
+        <View style={styles.labelsArea}>
+          <View style={{ display: 'flex', alignItems: 'center' }}>
+            <View style={[styles.statusBall, { backgroundColor: colors.danger }]} />
+            <CustomText>Recusada</CustomText>
+          </View>
+          <View style={{ display: 'flex', alignItems: 'center' }}>
+            <View style={[styles.statusBall, { backgroundColor: colors.pending }]} />
+            <CustomText>Em análise</CustomText>
+          </View>
+          <View style={{ display: 'flex', alignItems: 'center' }}>
+            <View style={[styles.statusBall, { backgroundColor: colors.confirm }]} />
+            <CustomText>Aprovada</CustomText>
+          </View>
+        </View>
+
         {role === 'Agente Cultural' && (
           <View style={styles.content}>
             <AccordionItem title='Minhas Ideias' isExpanded={true}>
@@ -230,7 +252,14 @@ const Ideas = () => {
                     <IdeaCard key={idea.id} idea={idea} onPress={() => handleViewCardNav(idea)} />
                   ))}
                 </View>
-              )) || <Text style={{ marginHorizontal: 'auto' }}>Nenhum item encontrado!</Text>}
+              )) || (
+                <View style={{ display: 'flex', alignItems: 'center' }}>
+                  <Text>Nenhuma ideia cadastrada!</Text>
+                  <Text style={{ marginBottom: 25 }}>Clique abaixo para submeter uma nova ideia.</Text>
+
+                  <CustomButton title='Criar Ideia' type='Secondary' width={135} height={50} handlePress={() => router.replace('/create')} />
+                </View>
+              )}
             </AccordionItem>
           </View>
         )}
@@ -247,7 +276,14 @@ const Ideas = () => {
                       }
                     })}
                   </View>
-                )) || <Text style={{ marginHorizontal: 'auto' }}>Nenhum item encontrado!</Text>}
+                )) || (
+                  <View style={{ display: 'flex', alignItems: 'center' }}>
+                    <Text>Nenhuma ideia cadastrada!</Text>
+                    <Text style={{ marginBottom: 25 }}>Clique abaixo para submeter uma nova ideia.</Text>
+
+                    <CustomButton title='Criar Ideia' type='Secondary' width={135} height={50} handlePress={() => router.replace('/create')} />
+                  </View>
+                )}
               </AccordionItem>
             </View>
 
@@ -261,14 +297,14 @@ const Ideas = () => {
                       }
                     })}
                   </View>
-                )) || <Text style={{ marginHorizontal: 'auto' }}>Nenhum item encontrado!</Text>}
+                )) || <Text style={{ marginHorizontal: 'auto' }}>Nenhuma ideia aprovada!</Text>}
               </AccordionItem>
             </View>
           </>
         )}
 
         {role === 'Comissão' &&
-          municipios.map((city: any, idx: number) => (
+          cities.map((city: any, idx: number) => (
             <View key={city.id} style={styles.content}>
               <CustomText style={styles.cardTitle}>{city.name}</CustomText>
               <View style={styles.subCard}>
@@ -281,7 +317,7 @@ const Ideas = () => {
                         }
                       })}
                     </View>
-                  )) || <Text style={{ marginHorizontal: 'auto' }}>Nenhum item encontrado!</Text>}
+                  )) || <Text style={{ marginHorizontal: 'auto' }}>Nenhuma ideia submetida!</Text>}
                 </AccordionItem>
               </View>
 
@@ -297,7 +333,7 @@ const Ideas = () => {
                         }
                       })}
                     </View>
-                  )) || <Text style={{ marginHorizontal: 'auto' }}>Nenhum item encontrado!</Text>}
+                  )) || <Text style={{ marginHorizontal: 'auto' }}>Nenhuma ideia aprovada!</Text>}
                 </AccordionItem>
               </View>
             </View>
@@ -323,7 +359,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 15,
     gap: 10,
-    marginBottom: 15,
   },
 
   titleArea: {
@@ -351,6 +386,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+
+  labelsArea: {
+    paddingHorizontal: 20,
+    paddingVertical: 5,
+    paddingTop: 10,
+    backgroundColor: colors.off_white,
+    marginVertical: 10,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+
+  statusBall: {
+    borderRadius: 50,
+    width: 15,
+    height: 15,
   },
 
   content: {

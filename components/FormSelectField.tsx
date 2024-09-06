@@ -8,7 +8,7 @@ const FormSelectField = ({ title, placeholder, selected, array, label, value, re
   return (
     <View style={styles.formSelectField}>
       <CustomText style={styles.title}>{`${title} ${required ? '*' : ''}`}</CustomText>
-      <View style={[styles.inputArea, errorMessage && styles.errorBorder]}>
+      <View style={[styles.inputArea, errorMessage && styles.errorBorder, disabled && styles.disabled]}>
         <Picker style={styles.picker} enabled={!disabled} selectedValue={selected} onValueChange={handleSelectChange}>
           <Picker.Item style={styles.placeholder} label={placeholder} value={null} />
           {array && array.map((option: any, index: number) => (
@@ -58,4 +58,8 @@ const styles = StyleSheet.create({
     color: 'red',
     marginTop: 5,
   },
+
+  disabled: {
+    backgroundColor: '#DDD'
+  }
 });

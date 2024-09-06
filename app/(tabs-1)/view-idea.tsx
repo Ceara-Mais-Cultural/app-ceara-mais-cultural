@@ -101,7 +101,6 @@ const ViewIdea = () => {
           }, 2000);
         })
         .catch((error) => {
-          console.log(error);
           setStatus(['error', 'Erro ao salvar voto. Tente novamente mais tarde']);
         })
         .finally(() => {
@@ -178,14 +177,13 @@ const ViewIdea = () => {
             {/* Comunidade */}
             <View style={styles.fieldArea}>
               <CustomText style={styles.label}>
-                <CustomText>{parsedIdea.community}</CustomText>
                 Comunidade: <CustomText>{parsedIdea?.community ? parsedIdea?.community : '-'}</CustomText>
               </CustomText>
             </View>
             {/* Local */}
             <View style={styles.fieldArea}>
               <CustomText style={styles.label}>
-                Local: <CustomText>{parsedIdea?.location}</CustomText>
+                Local de Realização: <CustomText>{parsedIdea?.location && parsedIdea?.location != 'null' ? parsedIdea?.location : '-'}</CustomText>
               </CustomText>
             </View>
           </View>
@@ -225,10 +223,10 @@ const ViewIdea = () => {
             {parsedIdea.file ? (
               <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <CustomText>Termo de Abertura</CustomText>
-                <TouchableOpacity onPress={async () => downloadAndShareFile()} style={{ display: 'flex', alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', borderRadius: 5, borderWidth: 1, borderColor: colors.menu_secundary, paddingVertical: 10, paddingHorizontal: 20, backgroundColor: colors.white }}>
+                <Pressable onPress={async () => downloadAndShareFile()} style={{ display: 'flex', alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', borderRadius: 5, borderWidth: 1, borderColor: colors.menu_secundary, paddingVertical: 10, paddingHorizontal: 20, backgroundColor: colors.white }}>
                   <CustomText style={{ color: colors.menu_secundary, top: 2 }}>Download</CustomText>
                   <Image style={{ width: 20, height: 20, marginLeft: 10 }} source={icons.download} tintColor={colors.menu_secundary} resizeMode='contain' />
-                </TouchableOpacity>
+                </Pressable>
               </View>
             ) : (
               <CustomText>Nenhum documento anexado.</CustomText>

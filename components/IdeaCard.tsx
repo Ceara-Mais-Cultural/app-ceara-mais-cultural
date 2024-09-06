@@ -9,7 +9,7 @@ const IdeaCard = ({ idea, onPress }: any) => {
 
   return (
     <TouchableOpacity style={styles.ideaCard} onPress={onPress}>
-      <View style={[styles.statusBall, idea?.status === 'approved' ? { backgroundColor: colors.confirm } : idea?.status === 'pending' ? { backgroundColor: colors.pending } : { backgroundColor: colors.danger }]} />
+      <View style={[styles.statusBall, idea?.status === 'approved' ? { backgroundColor: colors.confirm } : (idea?.status === 'pending' || idea?.status === 'waiting') ? { backgroundColor: colors.pending } : { backgroundColor: colors.danger }]} />
       <View style={[styles.cardContent]}>
         <CustomText style={{ fontSize: 15 }}>{idea?.title}</CustomText>
         <CustomText style={{ fontSize: 12 }}>

@@ -11,7 +11,7 @@ const FormField = ({ title, placeholder, value, inputMode = 'text', width = '100
   return (
     <View style={[styles.formField, { width, height }]}>
       {title && <CustomText style={styles.title}>{`${title} ${required ? '*' : ''}`}</CustomText>}
-      <View style={[styles.inputArea, multiline && styles.textAreaContainer, errorMessage && styles.errorBorder]}>
+      <View style={[styles.inputArea, multiline && styles.textAreaContainer, errorMessage && styles.errorBorder, disabled && styles.disabled]}>
         <TextInput
           {...props}
           secureTextEntry={isPasswordField && !showPassword}
@@ -24,7 +24,7 @@ const FormField = ({ title, placeholder, value, inputMode = 'text', width = '100
           onChangeText={handleChangeText}
           autoCapitalize={isPasswordField || title?.toLowerCase().includes('mail') ? 'none' : 'sentences'}
           multiline={multiline}
-          numberOfLines={multiline ? numberOfLines : 1}
+          rows={multiline ? numberOfLines : 1}
           verticalAlign={multiline ? 'top' : 'center'}
         />
         {isPasswordField && (
@@ -95,4 +95,8 @@ const styles = StyleSheet.create({
     color: 'red',
     marginTop: 5,
   },
+
+  disabled: {
+    backgroundColor: '#DDD'
+  }
 });

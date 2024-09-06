@@ -71,14 +71,17 @@ const SendDocument = () => {
     });
 
     if (response.status == 200) {
-      setStatus(['success', 'Documento enviado com sucesso!']);
+      setStatus(['success', 'Documento enviado com sucesso! Ideia submetida para análise.']);
       setTimeout(() => {
+        setLoading(false);
         router.navigate('/ideas');
-      }, 2000);
+      }, 3000);
     } else {
       setStatus(['error', 'Erro ao enviar documento. Tente novamente mais tarde']);
+      setTimeout(() => {
+        setLoading(false);
+      }, 2000);
     }
-    setLoading(false);
   };
 
   const downloadAndShareFile = async () => {

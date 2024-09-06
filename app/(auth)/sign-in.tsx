@@ -73,6 +73,7 @@ const SignIn = () => {
         await AsyncStorage.setItem('authToken', response.token);
         setAuthToken(response.token);
         setTimeout(() => {
+          setLoading(false);
           router.push('/ideas');
         }, 2000);
       })
@@ -81,7 +82,9 @@ const SignIn = () => {
         else setLoadingMessage(['error', 'Ocorreu um erro no servidor. Tente novamente mais tarde']);
       })
       .finally(() => {
-        setLoading(false);
+        setTimeout(() => {
+          setLoading(false);
+        }, 2000);
       });
   };
 

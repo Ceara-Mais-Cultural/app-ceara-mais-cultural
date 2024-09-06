@@ -13,5 +13,4 @@ export default {
   danger: '#FF2424',
   error: '#FF2424',
   confirm: '#54E85E',
-  peding: '#FAFE48',
 };

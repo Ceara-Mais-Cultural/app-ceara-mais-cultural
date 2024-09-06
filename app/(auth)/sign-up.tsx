@@ -1,4 +1,4 @@
-import { Alert, ScrollView, StyleSheet, View, Text } from 'react-native';
+import { ScrollView, StyleSheet, View, Text } from 'react-native';
 import React, { useCallback, useState } from 'react';
 import { colors } from '@/constants';
 import FormField from '@/components/FormField';
@@ -63,10 +63,10 @@ const SignUp = () => {
       });
   };
 
-  const getCityNeighborhoods = (idMunicipio: any) => {
+  const getCityNeighborhoods = (cityId: any) => {
     setLoading(true);
     setLoadingMessage([]);
-    GetDataService.getNeighborhoods(idMunicipio)
+    GetDataService.getNeighborhoods(cityId)
       .then((res) => {
         setNeighborhoods(res.data);
       })
@@ -131,7 +131,14 @@ const SignUp = () => {
     } else if (cleanedInput.length == 11) {
       const formattedCpf = cleanedInput.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
       formatedValue = formattedCpf;
-      setErrors({ ...errors, cpf: '' });
+      if (!AuthService.validateCpf(cleanedInput)) {
+        setErrors({ ...errors, cpf: 'CPF inválido' });
+        valid = false;
+      } else {
+        setErrors({ ...errors, cpf: '' });
+        valid = true;
+      }
+      
       valid = true;
     } else {
       setErrors({ ...errors, cpf: 'Este campo é obrigatório' });
@@ -243,6 +250,7 @@ const SignUp = () => {
       .then(() => {
         setLoadingMessage(['success', 'Conta criada com sucesso!']);
         setTimeout(() => {
+          setLoading(false);
           router.replace('/sign-in');
         }, 2000);
       })
@@ -250,7 +258,9 @@ const SignUp = () => {
         setLoadingMessage(['error', 'Erro ao criar conta']);
       })
       .finally(() => {
-        setLoading(false);
+        setTimeout(() => {
+          setLoading(false);
+        }, 2000);
       });
   };
 
@@ -264,7 +274,7 @@ const SignUp = () => {
             <>
               <CustomText style={styles.doLoginText}>Nos fale um pouco sobre você</CustomText>
 
-              <FormField title='Primeiro e último nome' required='true' value={form.name} handleChangeText={(newValue: any) => handleFieldChange('name', newValue)} errorMessage={errors.name} />
+              <FormField title='Primeiro e último nome' inputMode='text' required='true' value={form.name} handleChangeText={(newValue: any) => handleFieldChange('name', newValue)} errorMessage={errors.name} />
               <FormField title='CPF' inputMode='numeric' required='true' value={form.cpf} handleChangeText={(newValue: any) => handleFieldChange('cpf', newValue)} errorMessage={errors.cpf} />
               <FormSelectField
                 title='Município'

@@ -15,7 +15,7 @@ const Loader: React.FC<LoaderProps> = ({ visible, message = "Carregando...", sta
     if (visible) {
       setShowModal(true);
     } else {
-      setTimeout(() => setShowModal(false), 2000);
+      setShowModal(false);
     }
   }, [visible]);
 

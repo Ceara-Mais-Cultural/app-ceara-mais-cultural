@@ -16,38 +16,51 @@ import Loader from '@/components/Loader';
 
 const Create = () => {
   const initialFormState = {
-    titulo: '',
-    descricao: '',
-    categoria: '',
-    mobilizadorAgente: '',
-    municipio: '',
-    bairro: '',
-    comunidade: '',
-    local: '',
+    title: '',
+    description: '',
+    category: '',
+    promoterAgent: '',
+    city: '',
+    neighborhood: '',
+    community: '',
+    location: '',
     image: '',
+  };
+
+  const initialErrorState = {
+    title: '',
+    description: '',
+    category: '',
+    city: '',
+    neighborhood: '',
   };
 
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [form, setForm] = useState<any>(initialFormState);
-  const [categorias, setCategorias] = useState([]);
-  const [agentesCulturais, setAgentesCulturais] = useState([]);
-  const [mobilizadores, setMobilizadores] = useState([]);
-  const [municipios, setMunicipios] = useState([]);
-  const [bairros, setBairros] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState([] as any);
+  const [categories, setCategories] = useState([]);
+  const [agents, setAgents] = useState([]);
+  const [promoters, setPromoters] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [neighborhoods, setNeighborhoods] = useState([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [loadingMessage, setLoadingMessage] = useState<Array<any>>([]);
+  const [errors, setErrors] = useState(initialErrorState);
   const [authToken, setAuthToken] = useState<any>(null);
 
   useFocusEffect(
     useCallback(() => {
+      setForm(initialFormState);
+      setErrors(initialErrorState);
+      getCities();
+      getCategories();
+
       AuthService.getUserData().then((userData: any) => {
         const user = JSON.parse(userData);
-        setForm({});
-        setForm({ ...form, municipio: user?.city, bairro: user?.neighborhood, comunidade: user?.community });
+        setForm({ ...form, city: user?.city, neighborhood: user?.neighborhood, community: user?.community });
         setAuthToken(userData.token);
         setUser(user);
-        getMunicipioBairros(user?.city);
+        getCityNeighborhoods(user?.city);
         const role = AuthService.getPermissionLevel(user);
         if (role === 'Agente Cultural') {
           setIsAdmin(false);
@@ -57,26 +70,33 @@ const Create = () => {
           getAgents();
         }
       });
-      setForm(initialFormState);
-      getMunicipios();
-      getCategories();
     }, [])
   );
 
   const getAgents = () => {
-    GetDataService.getAgents().then((res) => {
-      setAgentesCulturais(res.data);
-    });
+    setLoadingMessage([]);
+    setLoading(true);
+    GetDataService.getAgents()
+      .then((res) => {
+        setAgents(res.data);
+      })
+      .catch(() => {
+        setLoadingMessage(['error', 'Erro ao recuperar agentes. Tente novamente mais tarde']);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   const getPromoters = () => {
+    setLoadingMessage([]);
     setLoading(true);
     GetDataService.getPromoters()
       .then((res) => {
-        setMobilizadores(res.data);
+        setPromoters(res.data);
       })
       .catch(() => {
-        setStatus(['error', 'Erro ao recuperar mobilizadores. Tente novamente mais tarde']);
+        setLoadingMessage(['error', 'Erro ao recuperar mobilizadores. Tente novamente mais tarde']);
       })
       .finally(() => {
         setLoading(false);
@@ -84,50 +104,51 @@ const Create = () => {
   };
 
   const getCategories = () => {
+    setLoadingMessage([]);
     setLoading(true);
     GetDataService.getCategories()
       .then((res) => {
-        setCategorias(res.data);
+        setCategories(res.data);
       })
       .catch(() => {
-        setStatus(['error', 'Erro ao recuperar categorias. Tente novamente mais tarde']);
+        setLoadingMessage(['error', 'Erro ao recuperar categorias. Tente novamente mais tarde']);
       })
       .finally(() => {
         setLoading(false);
       });
   };
 
-  const getMunicipios = () => {
+  const getCities = () => {
+    setLoadingMessage([]);
     setLoading(true);
     GetDataService.getCities()
       .then((res) => {
-        setMunicipios(res.data);
+        setCities(res.data);
       })
       .catch(() => {
-        setStatus(['error', 'Erro ao recuperar municípios. Tente novamente mais tarde']);
+        setLoadingMessage(['error', 'Erro ao recuperar municípios. Tente novamente mais tarde']);
       })
       .finally(() => {
         setLoading(false);
       });
   };
 
-  const getMunicipioBairros = (idMunicipio: any) => {
-    GetDataService.getNeighborhoods(idMunicipio)
+  const getCityNeighborhoods = (cityId: any) => {
+    setForm({ ...form, neighborhood: '' });
+    setNeighborhoods([]);
+    if (!cityId) return;
+    setLoadingMessage([]);
+    setLoading(true);
+    GetDataService.getNeighborhoods(cityId)
       .then((res) => {
-        setBairros(res.data);
+        setNeighborhoods(res.data);
       })
       .catch(() => {
-        setStatus(['error', 'Erro ao recuperar bairros. Tente novamente mais tarde']);
+        setLoadingMessage(['error', 'Erro ao recuperar bairros. Tente novamente mais tarde']);
       })
       .finally(() => {
         setLoading(false);
       });
-  };
-
-  const selectMunicipio = (idMunicipio: number) => {
-    if (!idMunicipio) return;
-    setForm({ ...form, municipio: idMunicipio });
-    getMunicipioBairros(idMunicipio);
   };
 
   const pickImage = async () => {
@@ -143,86 +164,167 @@ const Create = () => {
   };
 
   const validateForm = () => {
-    const formValid = !!form.titulo && !!form.descricao && !!form.categoria && !!form.municipio && !!form.bairro && !!form.local && !!form.image;
+    const formValid = validateTitle(form.title) && validateDescription(form.description) && validateCategory(form.category) && validateCity(form.city) && validateNeighborhood(form.neighborhood);
     return formValid;
   };
 
-  // Função para enviar a imagem
   const submit = async () => {
+    if (!validateForm()) return;
     setLoading(true);
+    setLoadingMessage([]);
     const formData = new FormData();
-    formData.append('image', {
-      uri: form.image.uri,
-      type: form.image.mimeType,
-      name: form.image.fileName,
-    } as any);
-    formData.append('title', form.titulo);
-    formData.append('description', form.descricao);
+    if (form.image) {
+      formData.append('image', {
+        uri: form.image.uri,
+        type: form.image.mimeType,
+        name: form.image.fileName,
+      } as any);
+    }
+    formData.append('title', form.title);
+    formData.append('description', form.description);
     formData.append('city', user?.city);
     formData.append('neighborhood', user?.neighborhood);
-    if (form.comunidade) {
-      formData.append('community', form.comunidade);
+    if (form.community) {
+      formData.append('community', form.community);
     }
-    formData.append('location', form.local);
-    formData.append('category', form.categoria);
-    formData.append('author', isAdmin ? form.mobilizadorAgente : user?.id);
+    if (form.location) {
+      formData.append('location', form.location);
+    }
+    formData.append('category', form.category);
+    formData.append('author', isAdmin ? form.promoterAgent : user?.id);
     if (isAdmin) {
       formData.append('promoter', user?.id);
     } else if (form.mobilizadorAgente) {
-      formData.append('promoter', form.mobilizadorAgente);
+      formData.append('promoter', form.promoterAgent);
     }
     formData.append('status', 'waiting');
 
-    const response = await fetch(`${api.defaults.baseURL}/projects/`, {
+    fetch(`${api.defaults.baseURL}/projects/`, {
       method: 'post',
       body: formData,
       headers: {
         'Content-Type': 'multipart/form-data',
         Authorization: `Bearer ${authToken}`,
       },
-    });
+    })
+      .then(async (res) => {
+        if (res.status == 201) {
+          const createdIdea = await res.json();
+          router.replace({ pathname: '/pre-register', params: { idea: JSON.stringify(createdIdea) } });
+        } else {
+          setLoadingMessage(['error', 'Erro ao cadastrar ideia. Tente novamente mais tarde']);
+          setTimeout(() => {
+            setLoading(false);
+          }, 2000);
+        }
+      })
+      .catch((error) => {
+        setLoadingMessage(['error', 'Erro ao cadastrar ideia. Tente novamente mais tarde']);
+        setTimeout(() => {
+          setLoading(false);
+        }, 2000);
+      });
+  };
 
-    if (response.status == 201) {
-      const createdIdea = await response.json();
-      router.push({ pathname: '/pre-register', params: { idea: JSON.stringify(createdIdea) } });
-    } else {
-      setStatus(['error', 'Erro ao cadastrar ideia']);
+  const handleFieldChange = (field: string, newValue: any) => {
+    switch (field) {
+      case 'title':
+        validateTitle(newValue);
+        break;
+      case 'description':
+        validateDescription(newValue);
+        break;
+      case 'category':
+        validateCategory(newValue);
+        break;
+      case 'city':
+        validateCity(newValue);
+        break;
+      case 'neighborhood':
+        validateNeighborhood(newValue);
+        break;
+      default:
+        break;
     }
-    setLoading(false);
+  };
+
+  const validateTitle = (newValue: string) => {
+    setForm({ ...form, title: newValue });
+    if (!newValue) {
+      setErrors({ ...errors, title: 'Este campo é obrigatório' });
+      return false;
+    } else {
+      setErrors({ ...errors, title: '' });
+      return true;
+    }
+  };
+
+  const validateDescription = (newValue: string) => {
+    setForm({ ...form, description: newValue });
+    if (!newValue) {
+      setErrors({ ...errors, description: 'Este campo é obrigatório' });
+      return false;
+    } else {
+      setErrors({ ...errors, description: '' });
+      return true;
+    }
+  };
+
+  const validateCategory = (newValue: string) => {
+    setForm({ ...form, category: newValue });
+    if (!newValue) {
+      setErrors({ ...errors, category: 'Este campo é obrigatório' });
+      return false;
+    } else {
+      setErrors({ ...errors, category: '' });
+      return true;
+    }
+  };
+
+  const validateCity = (newValue: string) => {
+    if (form.city !== newValue) getCityNeighborhoods(newValue);
+    setForm({ ...form, city: newValue });
+    if (!newValue) {
+      setErrors({ ...errors, city: 'Este campo é obrigatório' });
+      return false;
+    } else {
+      setErrors({ ...errors, city: '' });
+      return true;
+    }
+  };
+
+  const validateNeighborhood = (newValue: string) => {
+    setForm({ ...form, neighborhood: newValue });
+    if (!newValue) {
+      setErrors({ ...errors, neighborhood: 'Este campo é obrigatório' });
+      return false;
+    } else {
+      setErrors({ ...errors, neighborhood: '' });
+      return true;
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <Loader visible={loading} message={status[1]} status={status[0]} />
+      <Loader visible={loading} status={loadingMessage[0]} message={loadingMessage[1]} />
 
       <View style={styles.header}>
         <CustomText style={styles.title}>Ideia de Projeto</CustomText>
       </View>
       <ScrollView keyboardShouldPersistTaps='handled'>
         <View style={styles.card}>
-          <FormField title='Título' required='true' value={form?.titulo} handleChangeText={(e: any) => setForm({ ...form, titulo: e })} />
-          <FormField title={isAdmin ? 'Descreva a ideia do agente cultural' : 'Conte um pouco sobre a sua ideia'} size='bg' required='true' value={form?.descricao} multiline={true} handleChangeText={(e: any) => setForm({ ...form, descricao: e })} />
-          <FormSelectField title='Categoria' required='true' selected={form?.categoria} array={categorias} label='name' value='id' placeholder='Selecione' handleSelectChange={(e: any) => setForm({ ...form, categoria: e })} />
-          <FormSelectField title={isAdmin ? 'Agente Cultural' : 'Mobilizador(a)'} required={isAdmin} selected={form?.mobilizadorAgente} array={isAdmin ? agentesCulturais : mobilizadores} label='full_name' value='id' placeholder='Nenhum(a)' handleSelectChange={(e: any) => setForm({ ...form, mobilizadorAgente: e })} />
-          <FormSelectField
-            title='Município'
-            required='true'
-            selected={form?.municipio}
-            array={municipios}
-            label='name'
-            value='id'
-            placeholder='Selecione'
-            handleSelectChange={(idMunicipio: number) => {
-              selectMunicipio(idMunicipio);
-            }}
-          />
-          <FormSelectField title='Bairro' required='true' selected={form?.bairro} array={bairros} label='name' value='id' placeholder='Selecione' handleSelectChange={(e: any) => setForm({ ...form, bairro: e })} />
-          <FormField title='Comunidade' value={form?.comunidade} handleChangeText={(e: any) => setForm({ ...form, comunidade: e })} />
-          <FormField title='Local de realização' size='md' value={form?.local} handleChangeText={(e: any) => setForm({ ...form, local: e })} />
+          <FormField title='Título' required='true' value={form.title} handleChangeText={(newValue: any) => handleFieldChange('title', newValue)} errorMessage={errors.title} />
+          <FormField title={isAdmin ? 'Descreva a ideia do agente cultural' : 'Conte um pouco sobre a sua ideia'} size='bg' required='true' value={form.description} multiline={true} handleChangeText={(newValue: any) => handleFieldChange('description', newValue)} errorMessage={errors.description} />
+          <FormSelectField title='Categoria' required='true' selected={form.category} array={categories} label='name' value='id' placeholder='Selecione' handleSelectChange={(newValue: any) => handleFieldChange('category', newValue)} errorMessage={errors.category} />
+          <FormSelectField title={isAdmin ? 'Agente Cultural' : 'Mobilizador(a)'} required={isAdmin} selected={form.promoterAgent} array={isAdmin ? agents : promoters} label='full_name' value='id' placeholder='Nenhum(a)' handleSelectChange={(e: any) => setForm({ ...form, promoterAgent: e })} />
+          <FormSelectField title='Município' required='true' selected={form.city} array={cities} label='name' value='id' placeholder='Selecione' handleSelectChange={(newValue: any) => handleFieldChange('city', newValue)} errorMessage={errors.city} />
+          <FormSelectField title='Bairro' required='true' selected={form.neighborhood} array={neighborhoods} label='name' value='id' placeholder='Selecione' handleSelectChange={(newValue: any) => handleFieldChange('neighborhood', newValue)} errorMessage={errors.neighborhood} />
+          <FormField title='Comunidade' value={form.community} handleChangeText={(e: any) => setForm({ ...form, community: e })} />
+          <FormField title='Local de realização' size='md' value={form.location} handleChangeText={(e: any) => setForm({ ...form, location: e })} />
 
           {form?.image ? (
             <View style={styles.buttonArea}>
-              <CustomButton title='Trocar imagem' width={150} type='Secondary' handlePress={async () => pickImage()} />
+              <CustomButton title='Substituir imagem' width={150} type='Secondary' handlePress={async () => pickImage()} />
               <Image source={{ uri: form?.image?.uri.replace('http', 'https') }} style={styles.image} />
             </View>
           ) : (
@@ -232,7 +334,7 @@ const Create = () => {
           )}
 
           <View style={styles.buttonArea}>
-            <CustomButton title='Continuar' type='Primary' disabled={!validateForm()} handlePress={submit} />
+            <CustomButton title='Confirmar' type='Primary' handlePress={() => submit()} />
           </View>
         </View>
       </ScrollView>
