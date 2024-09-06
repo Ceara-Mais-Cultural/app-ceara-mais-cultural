@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import FormField from '@/components/FormField';
 import CustomButton from '@/components/CustomButton';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import AuthService from '../services/authService';
 import getDataService from '../services/getDataService';
 import CustomText from '@/components/CustomText';
@@ -35,16 +35,20 @@ const Ideas = () => {
   const [ideas, setIdeas] = useState([]);
   const [initialIdeas, setInitialIdeas] = useState([]);
   const filteredIdeas = ideas.filter((idea: any) => idea.title.toLowerCase().includes(searchText.toLowerCase()));
+  const [filterActive, setFilterActive] = useState(false);
 
   const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [role, setRole] = useState('Agente Cultural');
 
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState([] as any);
 
-  useEffect(() => {
-    loadScreen();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadScreen();
+    }, [])
+  );
 
   const loadScreen = async () => {
     setFilter(initialFilter);
@@ -58,7 +62,12 @@ const Ideas = () => {
       getCityNeighborhoods(user?.city);
       if (role === 'Agente Cultural') getIdeas(user?.id);
       else if (role === 'Mobilizador') getIdeas(user?.id, user?.city);
-      else getIdeas();
+      else {
+        setIsAdmin(true);
+        getIdeas();
+      }
+    } else {
+      router.replace('/sign-in');
     }
   };
 
@@ -72,28 +81,37 @@ const Ideas = () => {
   }, []);
 
   const getIdeas = (idUser: any = null, idCity: any = null) => {
-    getDataService.getProjects(idUser, idCity).then(
-      (res) => {
-        res.data.forEach((idea: any) => {
-          idea.created_at = new Date(idea.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-        });
-        setInitialIdeas(res.data);
-        setIdeas(res.data);
-        setLoading(false);
-      },
-      () => {
+    setLoading(true);
+    getDataService
+      .getProjects(idUser, idCity)
+      .then((res) => {
+        if (res.status == 200) {
+          res.data.forEach((idea: any) => {
+            idea.created_at = new Date(idea.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+          });
+          setInitialIdeas(res.data);
+          setIdeas(res.data);
+          setLoading(false);
+        } else {
+          throw new Error('');
+        }
+      })
+      .catch((error) => {
+        console.log(error);
         setLoadingMessage(['error', 'Erro ao recuperar ideias. Tente novamente mais tarde']);
-      }
-    );
+        setTimeout(() => {
+          setLoading(false);
+        }, 2000);
+      });
   };
 
   const handleViewCardNav = (idea: any) => {
-    if (role === 'Comissão' || idea.status !== 'waiting') router.push({ pathname: '/view-idea', params: { idea: JSON.stringify(idea) } });
-    else router.push({ pathname: '/send-document', params: { idea: JSON.stringify(idea) } });
+    if (role === 'Comissão' || idea.status !== 'waiting') router.replace({ pathname: '/view-idea', params: { idea: JSON.stringify(idea) } });
+    else router.replace({ pathname: '/send-document', params: { idea: JSON.stringify(idea) } });
   };
 
   const openFilter = () => {
-    setFilter({ ...filter, city: user?.city, neighborhood: user?.neighborhood, community: user?.community });
+    if (!isAdmin) setFilter({ ...filter, city: user?.city, neighborhood: user?.neighborhood });
     getCities();
     getCategories();
     setIsModalVisible(true);
@@ -101,33 +119,41 @@ const Ideas = () => {
 
   const closeFilter = (action: boolean) => {
     let filteredData: any = [...initialIdeas];
+    setLoading(true);
     if (action) {
       if (filter.title) {
         filteredData = filteredData.filter((idea: any) => idea.title.toLowerCase().includes(filter.title.toLowerCase()));
+        setFilterActive(true);
       }
       if (filter.category) {
         filteredData = filteredData.filter((idea: any) => idea.category === filter.category);
+        setFilterActive(true);
       }
       if (filter.city) {
         filteredData = filteredData.filter((idea: any) => idea.city === filter.city);
+        setFilterActive(true);
       }
       if (filter.neighborhood) {
         filteredData = filteredData.filter((idea: any) => idea.neighborhood === filter.neighborhood);
+        setFilterActive(true);
       }
       if (filter.community) {
-        filteredData = filteredData.filter((idea: any) => idea.community.toLowerCase().includes(filter.community.toLowerCase()));
+        filteredData = filteredData.filter((idea: any) => idea.community?.toLowerCase().includes(filter.community.toLowerCase()));
+        setFilterActive(true);
       }
       if (filteredData.length === 0) setIdeas(filteredData);
-      // else if (filteredData.every((value: any, index: any) => value === initialIdeas[index])) {
-      //   setIdeas(initialIdeas);
       else {
         setIdeas(filteredData);
       }
     } else {
       setFilter(initialFilter);
       setIdeas(initialIdeas);
+      setFilterActive(false);
     }
     setIsModalVisible(false);
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
   };
 
   const getCategories = () => {
@@ -138,6 +164,9 @@ const Ideas = () => {
       })
       .catch(() => {
         setLoadingMessage(['error', 'Erro ao recuperar categorias. Tente novamente mais tarde']);
+        setTimeout(() => {
+          setLoading(false);
+        }, 1500);
       })
       .finally(() => {
         setLoading(false);
@@ -145,12 +174,16 @@ const Ideas = () => {
   };
 
   const getCities = () => {
+    setLoading(true);
     GetDataService.getCities()
       .then((res) => {
         setCities(res.data);
       })
       .catch(() => {
         setLoadingMessage(['error', 'Erro ao recuperar municípios. Tente novamente mais tarde']);
+        setTimeout(() => {
+          setLoading(false);
+        }, 1500);
       })
       .finally(() => {
         setLoading(false);
@@ -161,7 +194,6 @@ const Ideas = () => {
     if (!cityId) return;
     setLoading(true);
     setLoadingMessage([]);
-    setFilter({ ...filter, neighborhood: '' });
     GetDataService.getNeighborhoods(cityId)
       .then((res) => {
         setNeighborhoods(res.data);
@@ -185,7 +217,13 @@ const Ideas = () => {
       <Modal animationType='fade' transparent={true} visible={isModalVisible} onRequestClose={() => closeFilter(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <CustomText style={styles.modalTitle}>Filtros</CustomText>
+            <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
+              <CustomText style={styles.modalTitle}>‎ </CustomText>
+              <CustomText style={[styles.modalTitle, { marginLeft: 9 }]}>Filtros</CustomText>
+              <Pressable onPress={() => closeFilter(false)}>
+                <CustomText style={{ fontSize: 25 }}>x</CustomText>
+              </Pressable>
+            </View>
             <FormField title='Título' width='80%' value={filter.title} handleChangeText={(e: any) => setFilter({ ...filter, title: e })} />
             <FormSelectField title='Categoria' selected={filter.category} array={categories} label='name' value='id' placeholder='Selecione' handleSelectChange={(e: any) => setFilter({ ...filter, category: e })} />
             <FormSelectField
@@ -205,7 +243,7 @@ const Ideas = () => {
             <FormField title='Comunidade' width='80%' value={filter.community} handleChangeText={(e: any) => setFilter({ ...filter, community: e })} />
 
             <View style={styles.filterButtons}>
-              <CustomButton title='Limpar' type='Secondary' width={135} height={50} handlePress={() => closeFilter(false)} />
+              <CustomButton title='Redefinir' type='Secondary' width={135} height={50} handlePress={() => closeFilter(false)} />
               <CustomButton title='Aplicar' type='Primary' width={135} height={50} handlePress={() => closeFilter(true)} />
             </View>
           </View>
@@ -254,8 +292,8 @@ const Ideas = () => {
                 </View>
               )) || (
                 <View style={{ display: 'flex', alignItems: 'center' }}>
-                  <Text>Nenhuma ideia cadastrada!</Text>
-                  <Text style={{ marginBottom: 25 }}>Clique abaixo para submeter uma nova ideia.</Text>
+                  <CustomText>{filterActive ? 'Nenhum resultado encontrado!' : 'Nenhuma ideia cadastrada!'}</CustomText>
+                  <CustomText style={{ marginBottom: 25 }}>Clique abaixo para submeter uma nova ideia.</CustomText>
 
                   <CustomButton title='Criar Ideia' type='Secondary' width={135} height={50} handlePress={() => router.replace('/create')} />
                 </View>
@@ -278,8 +316,9 @@ const Ideas = () => {
                   </View>
                 )) || (
                   <View style={{ display: 'flex', alignItems: 'center' }}>
-                    <Text>Nenhuma ideia cadastrada!</Text>
-                    <Text style={{ marginBottom: 25 }}>Clique abaixo para submeter uma nova ideia.</Text>
+                    <CustomText>{filterActive ? 'Nenhum resultado encontrado!' : 'Nenhuma ideia cadastrada!'}</CustomText>
+
+                    <CustomText style={{ marginBottom: 25 }}>Clique abaixo para submeter uma nova ideia.</CustomText>
 
                     <CustomButton title='Criar Ideia' type='Secondary' width={135} height={50} handlePress={() => router.replace('/create')} />
                   </View>
@@ -289,7 +328,7 @@ const Ideas = () => {
 
             <View style={styles.content}>
               <AccordionItem title={'Ideias Aprovadas de ' + user?.city_name}>
-                {(!loading && filteredIdeas.length > 0 && (
+                {(!loading && filteredIdeas.filter((idea: any) => idea.status == 'approved').length > 0 && (
                   <View style={styles.cardsArea}>
                     {filteredIdeas.map((idea: any) => {
                       if (idea.status === 'approved') {
@@ -297,7 +336,11 @@ const Ideas = () => {
                       }
                     })}
                   </View>
-                )) || <Text style={{ marginHorizontal: 'auto' }}>Nenhuma ideia aprovada!</Text>}
+                )) || (
+                  <View style={{ display: 'flex', alignItems: 'center' }}>
+                    <CustomText>{filterActive ? 'Nenhum resultado encontrado!' : 'Nenhuma ideia aprovada!'}</CustomText>
+                  </View>
+                )}
               </AccordionItem>
             </View>
           </>
@@ -309,7 +352,7 @@ const Ideas = () => {
               <CustomText style={styles.cardTitle}>{city.name}</CustomText>
               <View style={styles.subCard}>
                 <AccordionItem title={`Ideias Submetidas (${filteredIdeas.filter((idea: any) => idea.status !== 'approved' && idea.status !== 'waiting' && idea.city_name === city.name).length})`} isExpanded={idx === 0}>
-                  {(!loading && filteredIdeas.length > 0 && (
+                  {(!loading && filteredIdeas.filter((idea: any) => idea.status !== 'approved' && idea.status !== 'waiting' && idea.city_name === city.name).length > 0 && (
                     <View style={styles.cardsArea}>
                       {filteredIdeas.map((idea: any) => {
                         if (idea.status !== 'approved' && idea.status !== 'waiting' && idea.city_name === city.name) {
@@ -317,7 +360,11 @@ const Ideas = () => {
                         }
                       })}
                     </View>
-                  )) || <Text style={{ marginHorizontal: 'auto' }}>Nenhuma ideia submetida!</Text>}
+                  )) || (
+                    <View style={{ display: 'flex', alignItems: 'center' }}>
+                      <CustomText>{filterActive ? 'Nenhum resultado encontrado!' : 'Nenhuma ideia submetida!'}</CustomText>
+                    </View>
+                  )}
                 </AccordionItem>
               </View>
 
@@ -325,7 +372,7 @@ const Ideas = () => {
 
               <View style={styles.subCard}>
                 <AccordionItem title={`Ideias Aprovadas (${filteredIdeas.filter((idea: any) => idea.status === 'approved' && idea.city_name === city.name).length})`} isExpanded={false}>
-                  {(!loading && filteredIdeas.length > 0 && (
+                  {(!loading && filteredIdeas.filter((idea: any) => idea.status == 'approved').length > 0 && (
                     <View style={styles.cardsArea}>
                       {filteredIdeas.map((idea: any) => {
                         if (idea.status === 'approved' && idea.city_name === city.name) {
@@ -333,7 +380,11 @@ const Ideas = () => {
                         }
                       })}
                     </View>
-                  )) || <Text style={{ marginHorizontal: 'auto' }}>Nenhuma ideia aprovada!</Text>}
+                  )) || (
+                    <View style={{ display: 'flex', alignItems: 'center' }}>
+                      <CustomText>{filterActive ? 'Nenhum resultado encontrado!' : 'Nenhuma ideia aprovada!'}</CustomText>
+                    </View>
+                  )}
                 </AccordionItem>
               </View>
             </View>

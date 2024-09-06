@@ -30,7 +30,7 @@ const GetDataService = {
     return await api.get(`/projects-votes/?project=${ideaId}`);
   },
   getUserName: async (userId: number) => {
-    return await api.get(`/users/?id=${userId}`);
+    return await api.get(`/users/${userId}`);
   },
 };
 

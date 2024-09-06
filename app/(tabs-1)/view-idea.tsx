@@ -23,6 +23,7 @@ const ViewIdea = () => {
   const [action, setAction] = useState(false);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState([] as any);
+  const [imageError, setImageError] = useState(false);
   const [voteMembers, setVoteMembers] = useState([] as any);
 
   useFocusEffect(
@@ -67,7 +68,7 @@ const ViewIdea = () => {
     GetDataService.getIdeaVotes(ideiaId).then((res: any) => {
       const votes = res.data.map(async (vote: any) => {
         const userData = await GetDataService.getUserName(vote.user);
-        const memberName = userData?.data[0]?.full_name;
+        const memberName = userData?.data?.full_name;
         return { name: memberName, vote: vote.vote };
       });
       Promise.all(votes).then((results) => {
@@ -102,9 +103,9 @@ const ViewIdea = () => {
         })
         .catch((error) => {
           setStatus(['error', 'Erro ao salvar voto. Tente novamente mais tarde']);
-        })
-        .finally(() => {
-          setLoading(false);
+          setTimeout(() => {
+            setLoading(false);
+          }, 2000);
         });
     }
   };
@@ -140,7 +141,11 @@ const ViewIdea = () => {
         <View style={styles.card}>
           <CustomText style={styles.title}>{parsedIdea?.title}</CustomText>
           {/* Imagem */}
-          <View style={parsedIdea?.image ? { height: 200, width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', marginVertical: 10 } : {}}>{parsedIdea?.image ? <Image source={{ uri: parsedIdea?.image?.replace('http', 'https') }} style={styles.image} resizeMode='contain' /> : <></>}</View>
+          {parsedIdea?.image && !imageError && (
+            <View style={{ height: 200, width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', marginVertical: 10 }}>
+              <Image source={{ uri: parsedIdea?.image?.replace('http', 'https') }} style={styles.image} resizeMode='contain' onError={() => setImageError(true)} />
+            </View>
+          )}
 
           {/* Detalhes do Projeto */}
           <View style={styles.fieldArea}>
@@ -239,7 +244,10 @@ const ViewIdea = () => {
               {voteMembers?.length > 0 ? (
                 voteMembers?.map((member: any, index: number) => (
                   <View key={index} style={styles.voteItem}>
-                    <CustomText>{`${member.id == user.id ? 'Você' : member.name}: ${member.vote === 'approved' ? 'Aprovou' : 'Recusou'}`}</CustomText>
+                    <CustomText>
+                      <CustomText style={{fontFamily: 'PoppinsBold'}}>{member.name == user.full_name ? 'Você' : member.name}:</CustomText>
+                      {member.vote === 'approved' ? '  Aprovou' : '  Recusou'}
+                    </CustomText>
                   </View>
                 ))
               ) : (

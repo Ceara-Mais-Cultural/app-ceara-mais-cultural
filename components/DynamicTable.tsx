@@ -14,11 +14,18 @@ const DynamicTable = ({ data, header }: any) => {
   const columnWidth = 150;
 
   if (!data || data.length === 0) {
-    return <View style={{
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    }}><Text>Nenhum dado disponível</Text></View>;
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginTop: '40%'
+        }}
+      >
+        <Text>Nenhum dado disponível</Text>
+      </View>
+    );
   }
 
   return (

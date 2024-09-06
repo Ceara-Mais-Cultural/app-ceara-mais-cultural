@@ -1,5 +1,5 @@
 import { View, StyleSheet, ScrollView, Image, Alert } from 'react-native';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FormField from '@/components/FormField';
@@ -48,30 +48,34 @@ const Create = () => {
   const [errors, setErrors] = useState(initialErrorState);
   const [authToken, setAuthToken] = useState<any>(null);
 
-  useFocusEffect(
-    useCallback(() => {
-      setForm(initialFormState);
-      setErrors(initialErrorState);
-      getCities();
-      getCategories();
+  useEffect(() => {
+    resetForm();
+    getCities();
+    getCategories();
 
-      AuthService.getUserData().then((userData: any) => {
-        const user = JSON.parse(userData);
-        setForm({ ...form, city: user?.city, neighborhood: user?.neighborhood, community: user?.community });
-        setAuthToken(userData.token);
-        setUser(user);
-        getCityNeighborhoods(user?.city);
-        const role = AuthService.getPermissionLevel(user);
-        if (role === 'Agente Cultural') {
-          setIsAdmin(false);
-          getPromoters();
-        } else {
-          setIsAdmin(true);
-          getAgents();
-        }
-      });
-    }, [])
-  );
+    AuthService.getUserData().then((userData: any) => {
+      const user = JSON.parse(userData);
+      // setForm({ ...form, city: user?.city, neighborhood: user?.neighborhood, community: user?.community });
+      setAuthToken(userData.token);
+      setUser(user);
+      getCityNeighborhoods(user?.city);
+      const role = AuthService.getPermissionLevel(user);
+      if (role === 'Agente Cultural') {
+        setIsAdmin(false);
+        getPromoters();
+      } else {
+        setIsAdmin(true);
+        getAgents();
+      }
+    });
+  }, []);
+
+  useFocusEffect(useCallback(() => {}, []));
+
+  const resetForm = () => {
+    setForm(initialFormState);
+    setErrors(initialErrorState);
+  };
 
   const getAgents = () => {
     setLoadingMessage([]);
@@ -164,7 +168,7 @@ const Create = () => {
   };
 
   const validateForm = () => {
-    const formValid = validateTitle(form.title) && validateDescription(form.description) && validateCategory(form.category) && validateCity(form.city) && validateNeighborhood(form.neighborhood);
+    const formValid = validateTitle(form?.title) && validateDescription(form?.description) && validateCategory(form?.category) && validateCity(form?.city) && validateNeighborhood(form?.neighborhood);
     return formValid;
   };
 
@@ -173,30 +177,26 @@ const Create = () => {
     setLoading(true);
     setLoadingMessage([]);
     const formData = new FormData();
-    if (form.image) {
+    if (form?.image) {
       formData.append('image', {
-        uri: form.image.uri,
-        type: form.image.mimeType,
-        name: form.image.fileName,
+        uri: form?.image.uri,
+        type: form?.image.mimeType,
+        name: form?.image.fileName,
       } as any);
     }
-    formData.append('title', form.title);
-    formData.append('description', form.description);
+    formData.append('title', form?.title);
+    formData.append('description', form?.description);
     formData.append('city', user?.city);
     formData.append('neighborhood', user?.neighborhood);
-    if (form.community) {
-      formData.append('community', form.community);
+    if (form?.community) {
+      formData.append('community', form?.community);
     }
-    if (form.location) {
-      formData.append('location', form.location);
+    if (form?.location) {
+      formData.append('location', form?.location);
     }
-    formData.append('category', form.category);
-    formData.append('author', isAdmin ? form.promoterAgent : user?.id);
-    if (isAdmin) {
-      formData.append('promoter', user?.id);
-    } else if (form.mobilizadorAgente) {
-      formData.append('promoter', form.promoterAgent);
-    }
+    formData.append('category', form?.category);
+    formData.append('author', isAdmin ? form?.promoterAgent : user?.id);
+    formData.append('promoter', isAdmin ? user?.id : form?.promoterAgent);
     formData.append('status', 'waiting');
 
     fetch(`${api.defaults.baseURL}/projects/`, {
@@ -213,13 +213,12 @@ const Create = () => {
           router.replace({ pathname: '/pre-register', params: { idea: JSON.stringify(createdIdea) } });
         } else {
           setLoadingMessage(['error', 'Erro ao cadastrar ideia. Tente novamente mais tarde']);
-          setTimeout(() => {
-            setLoading(false);
-          }, 2000);
         }
       })
-      .catch((error) => {
+      .catch(() => {
         setLoadingMessage(['error', 'Erro ao cadastrar ideia. Tente novamente mais tarde']);
+      })
+      .finally(() => {
         setTimeout(() => {
           setLoading(false);
         }, 2000);
@@ -282,7 +281,7 @@ const Create = () => {
   };
 
   const validateCity = (newValue: string) => {
-    if (form.city !== newValue) getCityNeighborhoods(newValue);
+    if (form?.city !== newValue) getCityNeighborhoods(newValue);
     setForm({ ...form, city: newValue });
     if (!newValue) {
       setErrors({ ...errors, city: 'Este campo é obrigatório' });
@@ -313,14 +312,14 @@ const Create = () => {
       </View>
       <ScrollView keyboardShouldPersistTaps='handled'>
         <View style={styles.card}>
-          <FormField title='Título' required='true' value={form.title} handleChangeText={(newValue: any) => handleFieldChange('title', newValue)} errorMessage={errors.title} />
-          <FormField title={isAdmin ? 'Descreva a ideia do agente cultural' : 'Conte um pouco sobre a sua ideia'} size='bg' required='true' value={form.description} multiline={true} handleChangeText={(newValue: any) => handleFieldChange('description', newValue)} errorMessage={errors.description} />
-          <FormSelectField title='Categoria' required='true' selected={form.category} array={categories} label='name' value='id' placeholder='Selecione' handleSelectChange={(newValue: any) => handleFieldChange('category', newValue)} errorMessage={errors.category} />
-          <FormSelectField title={isAdmin ? 'Agente Cultural' : 'Mobilizador(a)'} required={isAdmin} selected={form.promoterAgent} array={isAdmin ? agents : promoters} label='full_name' value='id' placeholder='Nenhum(a)' handleSelectChange={(e: any) => setForm({ ...form, promoterAgent: e })} />
-          <FormSelectField title='Município' required='true' selected={form.city} array={cities} label='name' value='id' placeholder='Selecione' handleSelectChange={(newValue: any) => handleFieldChange('city', newValue)} errorMessage={errors.city} />
-          <FormSelectField title='Bairro' required='true' selected={form.neighborhood} array={neighborhoods} label='name' value='id' placeholder='Selecione' handleSelectChange={(newValue: any) => handleFieldChange('neighborhood', newValue)} errorMessage={errors.neighborhood} />
-          <FormField title='Comunidade' value={form.community} handleChangeText={(e: any) => setForm({ ...form, community: e })} />
-          <FormField title='Local de realização' size='md' value={form.location} handleChangeText={(e: any) => setForm({ ...form, location: e })} />
+          <FormField title='Título' required='true' value={form?.title} handleChangeText={(newValue: any) => handleFieldChange('title', newValue)} errorMessage={errors.title} />
+          <FormField title={isAdmin ? 'Descreva a ideia do agente cultural' : 'Conte um pouco sobre a sua ideia'} size='bg' required='true' value={form?.description} multiline={true} handleChangeText={(newValue: any) => handleFieldChange('description', newValue)} errorMessage={errors.description} />
+          <FormSelectField title='Categoria' required='true' selected={form?.category} array={categories} label='name' value='id' placeholder='Selecione' handleSelectChange={(newValue: any) => handleFieldChange('category', newValue)} errorMessage={errors.category} />
+          <FormSelectField title={isAdmin ? 'Agente Cultural' : 'Mobilizador(a)'} required={isAdmin} selected={form?.promoterAgent} array={isAdmin ? agents : promoters} label='full_name' value='id' placeholder='Nenhum(a)' handleSelectChange={(e: any) => setForm({ ...form, promoterAgent: e })} />
+          <FormSelectField title='Município' required='true' selected={form?.city} array={cities} label='name' value='id' placeholder='Selecione' handleSelectChange={(newValue: any) => handleFieldChange('city', newValue)} errorMessage={errors.city} />
+          <FormSelectField title='Bairro' required='true' selected={form?.neighborhood} array={neighborhoods} label='name' value='id' placeholder='Selecione' handleSelectChange={(newValue: any) => handleFieldChange('neighborhood', newValue)} errorMessage={errors.neighborhood} />
+          <FormField title='Comunidade' value={form?.community} handleChangeText={(e: any) => setForm({ ...form, community: e })} />
+          <FormField title='Local de realização' size='md' value={form?.location} handleChangeText={(e: any) => setForm({ ...form, location: e })} />
 
           {form?.image ? (
             <View style={styles.buttonArea}>

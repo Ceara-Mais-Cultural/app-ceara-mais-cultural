@@ -14,7 +14,7 @@ import getDataService from '../services/getDataService';
 import Loader from '@/components/Loader';
 
 const Reports = () => {
-  const tableHeader = ['Identificador', 'Título', 'Descrição', 'Município', 'Bairro', 'Comunidade', 'Local', 'Categoria', 'Data de Submissão', 'Agente Cultural', 'Mobilizador', 'Status'];
+  const tableHeader = ['Identificador', 'Título', 'Descrição', 'Município', 'Bairro', 'Comunidade', 'Local', 'Categoria', 'Data de Submissão', 'Agente Cultural', 'Status', 'Mobilizador'];
   const [ideas, setIdeas] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -32,26 +32,31 @@ const Reports = () => {
     }, [])
   );
 
-  const getIdeas = async (idUser: number | null = null, idCity: number | null = null) => {
+  const getIdeas = async () => {
     setLoading(true);
     try {
-      const res = await getDataService.getProjects(idUser, idCity);
-      const formattedIdeas = res.data
-        .map((idea: any) => {
-          return {
-            ...idea,
-            created_at: formatDate(idea.created_at),
-            promoter_name: idea.promoter_name ? idea.promoter_name : '-',
-            status: translateStatus(idea.status),
-          };
-        })
-        .map(removeUnnecessaryKeys);
-
-      setIdeas(formattedIdeas);
+      const res = await getDataService.getProjects();
+      if (res.status == 200) {
+        const formattedIdeas = res.data
+          .map((idea: any) => {
+            return {
+              ...idea,
+              created_at: formatDate(idea.created_at),
+              promoter_name: idea.promoter_name ? idea.promoter_name : '-',
+              status: translateStatus(idea.status),
+            };
+          })
+          .map(removeUnnecessaryKeys);
+        setIdeas(formattedIdeas);
+        setLoading(false);
+      } else {
+        throw new Error('');
+      }
     } catch (error) {
       setStatus(['error', 'Erro ao recuperar ideias. Tente novamente mais tarde']);
-    } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 2000);
     }
   };
 
@@ -127,12 +132,11 @@ const Reports = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      
       <Loader visible={loading} message={status[1]} status={status[0]} />
 
       <View style={styles.header}>
         <CustomText style={styles.title}>Relatório</CustomText>
-        <View style={styles.buttonArea}>{isAdmin && <CustomButton title='Exportar Excel' type='Primary' width={160} height={50}  handlePress={async () => exportDataToExcel(ideas)} />}</View>
+        <View style={styles.buttonArea}>{isAdmin && <CustomButton title='Exportar Excel' type='Primary' width={160} height={50} handlePress={async () => exportDataToExcel(ideas)} />}</View>
       </View>
       <ScrollView style={styles.content} keyboardShouldPersistTaps='handled'>
         <DynamicTable data={ideas} header={tableHeader} />
