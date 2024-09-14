@@ -1,4 +1,4 @@
-import { ScrollView, View, Image, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { ScrollView, View, Image, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, images } from '../constants';
 import { useEffect, useState } from 'react';
@@ -80,7 +80,7 @@ export default function Index() {
             </View>
           </View>
 
-          <CustomText style={{marginVertical: 10}}>Seja parte da revolução cultural do Ceará!</CustomText>
+          <CustomText style={{marginVertical: 10, textAlign: 'center'}}>Seja parte da revolução cultural do Ceará!</CustomText>
           <CustomButton title='Participar' type='Primary' height={60} width={250} handlePress={() => router.push('/sign-in')} />
 
           <CustomText style={{marginTop: 10}}>Versão 1.0.1</CustomText>
@@ -125,6 +125,7 @@ const styles = StyleSheet.create({
 
   listText: {
     marginBottom: 10,
+    textAlign: 'center'
   },
 
   listPromoters: {
@@ -136,8 +137,7 @@ const styles = StyleSheet.create({
   promoterRow: {
     display: 'flex',
     flexDirection: 'row',
-    width: '100%',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
   },
 
   promoter: {

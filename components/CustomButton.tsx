@@ -1,4 +1,4 @@
-import { StyleSheet, Pressable } from 'react-native';
+import { StyleSheet, Pressable, View } from 'react-native';
 import React from 'react';
 import { colors } from '@/constants';
 import CustomText from './CustomText';
@@ -12,10 +12,12 @@ const CustomButton = ({ title, handlePress, type, disabled, height = 50, width =
         disabled ? styles.disabled : styles.commonBackground,
         { height, width },
         type === 'Primary' ? styles.backgroundPrimary : type === 'Secondary' ? styles.backgroundSecondary : type === 'Link' ? styles.backgroundLink : styles.backgroundDanger,
-        pressed && styles.pressed, // Aplica opacidade quando pressionado
+        pressed && styles.pressed,
       ]}
     >
-      <CustomText style={[styles.commonTitle, type === 'Primary' ? styles.titlePrimary : type === 'Secondary' ? styles.titleSecondary : type === 'Link' ? styles.titleLink : styles.titleDanger]}>{title}</CustomText>
+      <View>
+        <CustomText style={[styles.commonTitle, type === 'Primary' ? styles.titlePrimary : type === 'Secondary' ? styles.titleSecondary : type === 'Link' ? styles.titleLink : styles.titleDanger]}>{title}</CustomText>
+      </View>
     </Pressable>
   );
 };

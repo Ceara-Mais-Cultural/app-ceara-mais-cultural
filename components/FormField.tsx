@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
   textArea: {
     height: 100,
     paddingVertical: 5,
-    textAlignVertical: 'top',
+    verticalAlign: 'top',
   },
 
   eyeIcon: {
