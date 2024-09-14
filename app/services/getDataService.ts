@@ -1,4 +1,5 @@
 import { api } from './api';
+import * as FileSystem from 'expo-file-system';
 
 const GetDataService = {
   getCities: async () => {
@@ -32,6 +33,34 @@ const GetDataService = {
   getUserName: async (userId: number) => {
     return await api.get(`/users/${userId}`);
   },
+  deleteFile: async (fileName: string) => {
+    const fileUri = FileSystem.documentDirectory + fileName;
+    try {
+      const fileInfo = await FileSystem.getInfoAsync(fileUri);
+      if (fileInfo.exists) {
+        await FileSystem.deleteAsync(fileUri);
+        console.error('Arquivo apagado com sucesso.')
+      } else {
+        console.error('Arquivo não encontrado.')
+
+      }
+    } catch (error) {
+      console.error('Erro ao apagar arquivo.')
+    }
+  },
+  deleteAllFiles: async () => {
+    try {
+      const files = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory as string);
+
+      for (const file of files) {
+        const fileUri = FileSystem.documentDirectory + file;
+        await FileSystem.deleteAsync(fileUri);
+      }
+      console.log('Arquivos apagados com sucesso.')
+    } catch (error) {
+      console.error('Erro ao apagar arquivos.')
+    }
+  }
 };
 
 export default GetDataService;

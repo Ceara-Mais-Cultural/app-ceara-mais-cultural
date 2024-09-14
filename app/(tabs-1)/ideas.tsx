@@ -52,6 +52,9 @@ const Ideas = () => {
 
   const loadScreen = async () => {
     setFilter(initialFilter);
+    setCategories([]);
+    setCities([]);
+    setNeighborhoods([]);
     const storedUserData = await AsyncStorage.getItem('userData');
     if (storedUserData) {
       const user = JSON.parse(storedUserData);
@@ -59,7 +62,6 @@ const Ideas = () => {
       setUser(user);
       setRole(role);
       getCities();
-      getCityNeighborhoods(user?.city);
       if (role === 'Agente Cultural') getIdeas(user?.id);
       else if (role === 'Mobilizador') getIdeas(user?.id, user?.city);
       else {
@@ -117,7 +119,7 @@ const Ideas = () => {
     setIsModalVisible(true);
   };
 
-  const closeFilter = (action: boolean) => {
+  const closeFilter = (action: boolean | undefined) => {
     let filteredData: any = [...initialIdeas];
     setLoading(true);
     if (action) {
@@ -145,7 +147,7 @@ const Ideas = () => {
       else {
         setIdeas(filteredData);
       }
-    } else {
+    } else if (action === false) {
       setFilter(initialFilter);
       setIdeas(initialIdeas);
       setFilterActive(false);
@@ -220,7 +222,7 @@ const Ideas = () => {
             <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
               <CustomText style={styles.modalTitle}>‎ </CustomText>
               <CustomText style={[styles.modalTitle, { marginLeft: 9 }]}>Filtros</CustomText>
-              <Pressable onPress={() => closeFilter(false)}>
+              <Pressable onPress={() => closeFilter(undefined)}>
                 <CustomText style={{ fontSize: 25 }}>x</CustomText>
               </Pressable>
             </View>
@@ -239,7 +241,7 @@ const Ideas = () => {
                 getCityNeighborhoods(e);
               }}
             />
-            <FormSelectField title='Bairro' selected={filter.neighborhood} array={neighborhoods} label='name' value='id' disabled={role !== 'Comissão'} placeholder='Selecione' handleSelectChange={(e: any) => setFilter({ ...filter, neighborhood: e })} />
+            <FormSelectField title='Bairro' selected={filter.neighborhood} array={neighborhoods} label='name' value='id' disabled={role !== 'Comissão' || !filter.city} placeholder='Selecione' handleSelectChange={(e: any) => setFilter({ ...filter, neighborhood: e })} />
             <FormField title='Comunidade' width='80%' value={filter.community} handleChangeText={(e: any) => setFilter({ ...filter, community: e })} />
 
             <View style={styles.filterButtons}>

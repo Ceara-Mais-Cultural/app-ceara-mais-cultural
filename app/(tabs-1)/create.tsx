@@ -1,5 +1,5 @@
-import { View, StyleSheet, ScrollView, Image, Alert } from 'react-native';
-import React, { useCallback, useEffect, useState } from 'react';
+import { View, StyleSheet, ScrollView, Image } from 'react-native';
+import React, { useCallback, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FormField from '@/components/FormField';
@@ -48,29 +48,30 @@ const Create = () => {
   const [errors, setErrors] = useState(initialErrorState);
   const [authToken, setAuthToken] = useState<any>(null);
 
-  useEffect(() => {
-    resetForm();
-    getCities();
-    getCategories();
+  useFocusEffect(
+    useCallback(() => {
+      resetForm();
+      getCities();
+      getCategories();
+      GetDataService.deleteAllFiles();
 
-    AuthService.getUserData().then((userData: any) => {
-      const user = JSON.parse(userData);
-      // setForm({ ...form, city: user?.city, neighborhood: user?.neighborhood, community: user?.community });
-      setAuthToken(userData.token);
-      setUser(user);
-      getCityNeighborhoods(user?.city);
-      const role = AuthService.getPermissionLevel(user);
-      if (role === 'Agente Cultural') {
-        setIsAdmin(false);
-        getPromoters();
-      } else {
-        setIsAdmin(true);
-        getAgents();
-      }
-    });
-  }, []);
-
-  useFocusEffect(useCallback(() => {}, []));
+      AuthService.getUserData().then((userData: any) => {
+        const user = JSON.parse(userData);
+        setAuthToken(userData.token);
+        setUser(user);
+        getCityNeighborhoods(user?.city);
+        setForm({ ...form, city: user?.city, neighborhood: user?.neighborhood, community: user?.community });
+        const role = AuthService.getPermissionLevel(user);
+        if (role === 'Agente Cultural') {
+          setIsAdmin(false);
+          getPromoters();
+        } else {
+          setIsAdmin(true);
+          getAgents();
+        }
+      });
+    }, [])
+  );
 
   const resetForm = () => {
     setForm(initialFormState);
@@ -317,7 +318,7 @@ const Create = () => {
           <FormSelectField title='Categoria' required='true' selected={form?.category} array={categories} label='name' value='id' placeholder='Selecione' handleSelectChange={(newValue: any) => handleFieldChange('category', newValue)} errorMessage={errors.category} />
           <FormSelectField title={isAdmin ? 'Agente Cultural' : 'Mobilizador(a)'} required={isAdmin} selected={form?.promoterAgent} array={isAdmin ? agents : promoters} label='full_name' value='id' placeholder='Nenhum(a)' handleSelectChange={(e: any) => setForm({ ...form, promoterAgent: e })} />
           <FormSelectField title='Município' required='true' selected={form?.city} array={cities} label='name' value='id' placeholder='Selecione' handleSelectChange={(newValue: any) => handleFieldChange('city', newValue)} errorMessage={errors.city} />
-          <FormSelectField title='Bairro' required='true' selected={form?.neighborhood} array={neighborhoods} label='name' value='id' placeholder='Selecione' handleSelectChange={(newValue: any) => handleFieldChange('neighborhood', newValue)} errorMessage={errors.neighborhood} />
+          <FormSelectField title='Bairro' required='true' selected={form?.neighborhood} disabled={!form?.city} array={neighborhoods} label='name' value='id' placeholder='Selecione' handleSelectChange={(newValue: any) => handleFieldChange('neighborhood', newValue)} errorMessage={errors.neighborhood} />
           <FormField title='Comunidade' value={form?.community} handleChangeText={(e: any) => setForm({ ...form, community: e })} />
           <FormField title='Local de realização' size='md' value={form?.location} handleChangeText={(e: any) => setForm({ ...form, location: e })} />
 

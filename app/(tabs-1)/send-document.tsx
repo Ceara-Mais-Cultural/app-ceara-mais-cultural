@@ -85,18 +85,19 @@ const SendDocument = () => {
   };
 
   const downloadAndShareFile = async () => {
+    setLoading(true);
     setStatus([]);
     try {
       // URL do arquivo que você deseja baixar
-      const fileUrl = 'https://api.arya.ai/images/test.pdf';
-      const fileUri = FileSystem.documentDirectory + 'Termo de Abertura do Projeto.pdf';
+      const fileUri = FileSystem.documentDirectory + 'Termo de Abertura do Projeto.docx';
+      const assetUri = 'https://github.com/Ceara-Mais-Cultural/app-ceara-mais-cultural/raw/main/assets/termo-projeto.docx';
 
       // Baixar o arquivo
-      const { uri } = await FileSystem.downloadAsync(fileUrl, fileUri);
+      await FileSystem.downloadAsync(assetUri, fileUri);
 
       // Compartilhar o arquivo se possível
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(uri);
+        await Sharing.shareAsync(fileUri);
       } else {
         setStatus(['error', 'Erro ao compartilhar documento. Tente novamente mais tarde']);
       }
