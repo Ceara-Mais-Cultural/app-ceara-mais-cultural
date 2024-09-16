@@ -15,9 +15,7 @@ const CustomButton = ({ title, handlePress, type, disabled, height = 50, width =
         pressed && styles.pressed,
       ]}
     >
-      <View>
-        <CustomText style={[styles.commonTitle, type === 'Primary' ? styles.titlePrimary : type === 'Secondary' ? styles.titleSecondary : type === 'Link' ? styles.titleLink : styles.titleDanger]}>{title}</CustomText>
-      </View>
+      <CustomText style={[styles.commonTitle, type === 'Primary' ? styles.titlePrimary : type === 'Secondary' ? styles.titleSecondary : type === 'Link' ? styles.titleLink : styles.titleDanger]}>{title}</CustomText>
     </Pressable>
   );
 };

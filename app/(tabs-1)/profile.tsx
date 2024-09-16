@@ -204,9 +204,6 @@ const Profile = () => {
         setTimeout(() => {
           router.replace('/sign-in');
         }, 2000);
-      })
-      .finally(() => {
-        setLoading(false);
       });
   };
 

@@ -99,7 +99,6 @@ const Ideas = () => {
         }
       })
       .catch((error) => {
-        console.log(error);
         setLoadingMessage(['error', 'Erro ao recuperar ideias. Tente novamente mais tarde']);
         setTimeout(() => {
           setLoading(false);
@@ -113,8 +112,7 @@ const Ideas = () => {
   };
 
   const openFilter = () => {
-    if (!isAdmin) setFilter({ ...filter, city: user?.city, neighborhood: user?.neighborhood });
-    getCities();
+    if (!isAdmin) setFilter({ ...filter, city: user?.city });
     getCategories();
     setIsModalVisible(true);
   };
@@ -180,15 +178,13 @@ const Ideas = () => {
     GetDataService.getCities()
       .then((res) => {
         setCities(res.data);
+        getCityNeighborhoods(user?.id);
       })
       .catch(() => {
         setLoadingMessage(['error', 'Erro ao recuperar municípios. Tente novamente mais tarde']);
         setTimeout(() => {
           setLoading(false);
         }, 1500);
-      })
-      .finally(() => {
-        setLoading(false);
       });
   };
 
@@ -226,11 +222,11 @@ const Ideas = () => {
                 <CustomText style={{ fontSize: 25 }}>x</CustomText>
               </Pressable>
             </View>
-            <FormField title='Título' width='80%' value={filter.title} handleChangeText={(e: any) => setFilter({ ...filter, title: e })} />
+            <FormField title='Título' width='80%' value={filter?.title} handleChangeText={(e: any) => setFilter({ ...filter, title: e })} />
             <FormSelectField title='Categoria' selected={filter.category} array={categories} label='name' value='id' placeholder='Selecione' handleSelectChange={(e: any) => setFilter({ ...filter, category: e })} />
             <FormSelectField
               title='Município'
-              selected={filter.city}
+              selected={filter?.city}
               array={cities}
               label='name'
               value='id'
@@ -241,8 +237,8 @@ const Ideas = () => {
                 getCityNeighborhoods(e);
               }}
             />
-            <FormSelectField title='Bairro' selected={filter.neighborhood} array={neighborhoods} label='name' value='id' disabled={role !== 'Comissão' || !filter.city} placeholder='Selecione' handleSelectChange={(e: any) => setFilter({ ...filter, neighborhood: e })} />
-            <FormField title='Comunidade' width='80%' value={filter.community} handleChangeText={(e: any) => setFilter({ ...filter, community: e })} />
+            <FormSelectField title='Bairro' selected={filter?.neighborhood} array={neighborhoods} label='name' value='id' disabled={!filter.city} placeholder='Selecione' handleSelectChange={(e: any) => setFilter({ ...filter, neighborhood: e })} />
+            <FormField title='Comunidade' width='80%' value={filter?.community} handleChangeText={(e: any) => setFilter({ ...filter, community: e })} />
 
             <View style={styles.filterButtons}>
               <CustomButton title='Redefinir' type='Secondary' width={135} height={50} handlePress={() => closeFilter(false)} />

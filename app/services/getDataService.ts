@@ -56,7 +56,6 @@ const GetDataService = {
         const fileUri = FileSystem.documentDirectory + file;
         await FileSystem.deleteAsync(fileUri);
       }
-      console.log('Arquivos apagados com sucesso.')
     } catch (error) {
       console.error('Erro ao apagar arquivos.')
     }

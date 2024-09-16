@@ -32,11 +32,11 @@ const ViewIdea = () => {
         const user = JSON.parse(userData);
         setUser(user);
         const role = AuthService.getPermissionLevel(user);
+        if (role === 'Comissão') getVotes(JSON.parse(idea as any).id);
         setRole(role);
       });
       setVoteMembers([]);
       setParsedIdea(JSON.parse(idea as any));
-      getVotes(JSON.parse(idea as any).id);
     }, [idea])
   );
 
@@ -45,7 +45,7 @@ const ViewIdea = () => {
     setLoading(true);
     try {
       // URL do arquivo que você deseja baixar
-      const fileUrl = parsedIdea.file.replace('http', 'https');
+      const fileUrl = parsedIdea?.file?.replace('http', 'https');
       const fileUri = FileSystem.documentDirectory + 'Termo de Abertura do Projeto.pdf';
 
       // Baixar o arquivo
@@ -64,7 +64,7 @@ const ViewIdea = () => {
     }
   };
 
-  const getVotes = (ideiaId: number) => {
+  const getVotes = async (ideiaId: number) => {
     GetDataService.getIdeaVotes(ideiaId).then((res: any) => {
       const votes = res.data.map(async (vote: any) => {
         const userData = await GetDataService.getUserName(vote.user);
@@ -225,7 +225,7 @@ const ViewIdea = () => {
           {/* Documentos */}
           <CustomText style={styles.sectionTitle}>Documentos</CustomText>
           <View style={styles.fieldArea}>
-            {parsedIdea.file ? (
+            {parsedIdea?.file ? (
               <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <CustomText>Termo de Abertura</CustomText>
                 <Pressable onPress={async () => downloadAndShareFile()} style={{ display: 'flex', alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', borderRadius: 5, borderWidth: 1, borderColor: colors.menu_secundary, paddingVertical: 10, paddingHorizontal: 20, backgroundColor: colors.white }}>

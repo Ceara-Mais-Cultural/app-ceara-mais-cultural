@@ -2,7 +2,7 @@
   "expo": {
     "name": "Ceará Mais Cultural",
     "slug": "ceara-mais-cultural",
-    "version": "10.0.1",
+    "version": "10.0.2",
     "icon": "./assets/images/icon.png",
     "scheme": "ceara-mais-cultural",
     "userInterfaceStyle": "automatic",
@@ -25,7 +25,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.luisgglins.cearamaiscultural",
-      "versionCode": 36
+      "versionCode": 37
       
     },
     "web": {

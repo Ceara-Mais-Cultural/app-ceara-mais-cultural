@@ -66,7 +66,7 @@ const SendDocument = () => {
       body: formData,
       headers: {
         'Content-Type': 'multipart/form-data',
-        Authorization: `Bearer ${authToken}`,
+        Authorization: `Token ${authToken}`,
       },
     });
 

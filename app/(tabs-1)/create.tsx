@@ -46,7 +46,7 @@ const Create = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingMessage, setLoadingMessage] = useState<Array<any>>([]);
   const [errors, setErrors] = useState(initialErrorState);
-  const [authToken, setAuthToken] = useState<any>(null);
+  const [authToken, setAuthToken] = useState<any>({});
 
   useFocusEffect(
     useCallback(() => {
@@ -57,7 +57,9 @@ const Create = () => {
 
       AuthService.getUserData().then((userData: any) => {
         const user = JSON.parse(userData);
-        setAuthToken(userData.token);
+        AuthService.getAuthToken().then((res: string | null) => {
+          setAuthToken(res);
+        });
         setUser(user);
         getCityNeighborhoods(user?.city);
         setForm({ ...form, city: user?.city, neighborhood: user?.neighborhood, community: user?.community });
@@ -197,15 +199,22 @@ const Create = () => {
     }
     formData.append('category', form?.category);
     formData.append('author', isAdmin ? form?.promoterAgent : user?.id);
-    formData.append('promoter', isAdmin ? user?.id : form?.promoterAgent);
+
+    if (isAdmin) {
+      formData.append('promoter', user?.id);
+    } else if (form?.promoterAgent) {
+      formData.append('promoter', form?.promoterAgent);
+    }
     formData.append('status', 'waiting');
+
+    console.log(api.defaults.headers.common['Authorization'])
 
     fetch(`${api.defaults.baseURL}/projects/`, {
       method: 'post',
       body: formData,
       headers: {
         'Content-Type': 'multipart/form-data',
-        Authorization: `Bearer ${authToken}`,
+        Authorization: `Token ${authToken}`,
       },
     })
       .then(async (res) => {
