@@ -11,7 +11,7 @@ import * as ImagePicker from 'expo-image-picker';
 import AuthService from '../services/authService';
 import GetDataService from '../services/getDataService';
 import CustomText from '@/components/CustomText';
-import { api } from '../services/api';
+import api from '../services/api';
 import Loader from '@/components/Loader';
 
 const Create = () => {

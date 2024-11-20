@@ -5,9 +5,21 @@
     "baseUrl": ".",
     "strict": true,
     "paths": {
-      "@/*": ["*"]
+      "@/*": [
+        "*"
+      ]
     }
   },
-  "include": ["app/**/*", "**/*.ts", "**/*.js", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "app/**/*",
+    "**/*.ts",
+    "**/*.js",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts",
+    "global.d.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

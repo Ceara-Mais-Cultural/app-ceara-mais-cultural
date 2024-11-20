@@ -4,7 +4,7 @@ import success from '../assets/images/success.png'
 import example from '../assets/images/example.jpg'
 import aspra from '../assets/images/sponsers/ASPRA.png'
 import impactHub from '../assets/images/sponsers/IMPACT_HUB.png'
-import mjsp from '../assets/images/sponsers/MJSP.png'
+import mjssp from '../assets/images/sponsers/MJSSP.png'
 import pronasci from '../assets/images/sponsers/PRONASCI.png'
 import ufc from '../assets/images/sponsers/UFC.png'
 
@@ -15,7 +15,7 @@ export default {
   example,
   aspra,
   impactHub,
-  mjsp,
+  mjssp,
   pronasci,
   ufc,
 };

@@ -8,7 +8,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import CustomText from '@/components/CustomText';
 import * as Sharing from 'expo-sharing';
-import { api } from '../services/api';
+import api from '../services/api';
 import AuthService from '../services/authService';
 import Loader from '@/components/Loader';
 

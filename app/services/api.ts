@@ -16,4 +16,5 @@ const setAuthToken = (token: string) => {
   }
 };
 
-export { api, setAuthToken };
+export default api;
+export { setAuthToken };
