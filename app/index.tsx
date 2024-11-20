@@ -37,9 +37,6 @@ export default function Index() {
     );
   }
 
-  const SPACER_SIZE = 1000; //arbitrary size
-  const TOP_COLOR = "white";
-
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <ScrollView style={[styles.background]} persistentScrollbar={true}>
@@ -53,7 +50,7 @@ export default function Index() {
             <CustomText style={styles.listText}>Esse é um projeto apoiado e patrocinado por:</CustomText>
 
             <View style={styles.promoterRow}>
-              <Image source={images.mjssp as any} style={{ marginTop: 10, width: "100%", height: 285 }} resizeMode="contain" />
+              <Image source={images.mjssp as any} style={{ marginTop: 10, width: "89.8%", height: 290, borderWidth: 1.5, borderColor: colors.stroke, borderRadius: 15 }} resizeMode="contain" />
             </View>
 
             <View style={styles.promoterRow}>
@@ -148,7 +145,7 @@ const styles = StyleSheet.create({
     gap: 3,
     borderWidth: 1.5,
     borderColor: colors.stroke,
-    backgroundColor: colors.off_white,
+    backgroundColor: colors.white,
     borderRadius: 15,
   },
 
