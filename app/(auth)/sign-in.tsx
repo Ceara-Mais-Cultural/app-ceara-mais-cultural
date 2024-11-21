@@ -93,7 +93,7 @@ const SignIn = () => {
       <Loader visible={loading} status={loadingMessage[0]} message={loadingMessage[1]} />
       <ScrollView style={styles.background} contentContainerStyle={{ height: '100%' }} keyboardShouldPersistTaps='handled'>
         <View style={styles.logoArea}>
-          <Image style={styles.logo} source={images.logoDark} resizeMode='contain' />
+          <Image style={styles.logo} source={images.logoDark as any} resizeMode='contain' />
         </View>
 
         <View style={styles.card}>

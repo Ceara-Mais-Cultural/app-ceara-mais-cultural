@@ -159,6 +159,9 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 25,
     borderBottomRightRadius: 25,
     padding: 20,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
 
   title: {
@@ -167,6 +170,8 @@ const styles = StyleSheet.create({
     fontFamily: 'PoppinsBold',
     marginHorizontal: 'auto',
     marginBottom: 5,
+    borderWidth: 1,
+    borderColor: colors.background_dark,
   },
 
   buttonArea: {

@@ -69,15 +69,15 @@ const SignUp = () => {
     GetDataService.getNeighborhoods(cityId)
       .then((res) => {
         setNeighborhoods(res.data);
+        setLoading(false);
+
       })
       .catch(() => {
         setLoadingMessage(['error', 'Erro ao recuperar bairros. Tente novamente mais tarde']);
         setTimeout(() => {
+          setLoading(false);
           router.replace('/sign-in');
         }, 2000);
-      })
-      .finally(() => {
-        setLoading(false);
       });
   };
 

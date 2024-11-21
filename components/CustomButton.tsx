@@ -31,8 +31,8 @@ const styles = StyleSheet.create({
   },
 
   commonTitle: {
-    width: '100%',
     textAlign: 'center',
+    marginTop: 3
   },
 
   disabled: {

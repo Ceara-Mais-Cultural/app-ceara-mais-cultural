@@ -26,6 +26,7 @@ const Profile = () => {
     role: '-',
   });
 
+  const [userData, setUserData] = useState<any>({});
   const [editing, setEditing] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingMessage, setLoadingMessage] = useState<Array<any>>([]);
@@ -46,12 +47,13 @@ const Profile = () => {
   );
 
   const resetUserData = () => {
-    AsyncStorage.getItem('userData').then((user: any) => {
-      const userData = JSON.parse(user);
-      userData.role = AuthService.getPermissionLevel(userData);
+    AsyncStorage.getItem('userData').then((userData: any) => {
+      const user = JSON.parse(userData);
+      setUserData(user)
+      user.role = AuthService.getPermissionLevel(user);
       getCities();
-      getCityNeighborhoods(userData.city);
-      setForm({ ...userData, name: userData.full_name, formatedCpf: formatHiddenCpf(userData?.cpf) });
+      getCityNeighborhoods(user.city);
+      setForm({ ...user, name: user.full_name, formatedCpf: formatHiddenCpf(user?.cpf) });
     });
   };
 
@@ -91,6 +93,8 @@ const Profile = () => {
       city: form.city,
       neighborhood: form.neighborhood,
       community: form.community ? form.community : null,
+      is_staff: userData.is_staff,
+      is_superuser: userData.is_superuser
     };
     AuthService.editUserData(body, form.id)
       .then(async (res) => {
